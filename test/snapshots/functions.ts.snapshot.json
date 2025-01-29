@@ -1,0 +1,146 @@
+[
+  {
+    "name": "greet",
+    "type": "function",
+    "startLine": 2,
+    "endLine": 4,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 1,
+        "cyclomaticComplexity": 1,
+        "maintainabilityIndex": 96.52468777714961,
+        "averageMethodComplexity": 1,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 3
+        },
+        "complexity": 1,
+        "loc": 1
+      }
+    }
+  },
+  {
+    "name": "<arrow>",
+    "type": "arrow",
+    "startLine": 7,
+    "endLine": 7,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 0,
+        "cyclomaticComplexity": 1,
+        "maintainabilityIndex": 93.57076430684866,
+        "averageMethodComplexity": 1,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 7.92481250360578
+        },
+        "complexity": 1,
+        "loc": 0
+      }
+    }
+  },
+  {
+    "name": "processArray",
+    "type": "function",
+    "startLine": 10,
+    "endLine": 22,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 6,
+        "cyclomaticComplexity": 2,
+        "maintainabilityIndex": 68.55787876954824,
+        "averageMethodComplexity": 2,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 106.60593781761291
+        },
+        "complexity": 2,
+        "loc": 6
+      }
+    }
+  },
+  {
+    "name": "<arrow>",
+    "type": "arrow",
+    "startLine": 13,
+    "endLine": 19,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 3,
+        "cyclomaticComplexity": 2,
+        "maintainabilityIndex": 78.15890094008513,
+        "averageMethodComplexity": 2,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 39.302968908806456
+        },
+        "complexity": 2,
+        "loc": 3
+      }
+    }
+  },
+  {
+    "name": "<arrow>",
+    "type": "arrow",
+    "startLine": 21,
+    "endLine": 21,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 0,
+        "cyclomaticComplexity": 1,
+        "maintainabilityIndex": 93.57076430684866,
+        "averageMethodComplexity": 1,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 7.92481250360578
+        },
+        "complexity": 1,
+        "loc": 0
+      }
+    }
+  },
+  {
+    "name": "<anonymous>",
+    "type": "function",
+    "startLine": 25,
+    "endLine": 32,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 4,
+        "cyclomaticComplexity": 3,
+        "maintainabilityIndex": 76.01872489114953,
+        "averageMethodComplexity": 3,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 31.019550008653873
+        },
+        "complexity": 3,
+        "loc": 4
+      }
+    }
+  }
+]

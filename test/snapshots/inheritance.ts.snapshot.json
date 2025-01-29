@@ -1,0 +1,218 @@
+[
+  {
+    "name": "constructor",
+    "type": "method",
+    "startLine": 7,
+    "endLine": 7,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 0,
+        "cyclomaticComplexity": 1,
+        "maintainabilityIndex": 99.86549707602339,
+        "averageMethodComplexity": 1,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 0
+        },
+        "complexity": 1,
+        "loc": 0
+      }
+    }
+  },
+  {
+    "name": "getSpecies",
+    "type": "method",
+    "startLine": 9,
+    "endLine": 11,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 1,
+        "cyclomaticComplexity": 1,
+        "maintainabilityIndex": 99.86549707602339,
+        "averageMethodComplexity": 1,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 0
+        },
+        "complexity": 1,
+        "loc": 1
+      }
+    }
+  },
+  {
+    "name": "constructor",
+    "type": "method",
+    "startLine": 15,
+    "endLine": 17,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 1,
+        "cyclomaticComplexity": 1,
+        "maintainabilityIndex": 99.86549707602339,
+        "averageMethodComplexity": 1,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 0
+        },
+        "complexity": 1,
+        "loc": 1
+      }
+    }
+  },
+  {
+    "name": "makeSound",
+    "type": "method",
+    "startLine": 19,
+    "endLine": 21,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 1,
+        "cyclomaticComplexity": 1,
+        "maintainabilityIndex": 94.24932949213164,
+        "averageMethodComplexity": 1,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 6.339850002884624
+        },
+        "complexity": 1,
+        "loc": 1
+      }
+    }
+  },
+  {
+    "name": "getSpecies",
+    "type": "method",
+    "startLine": 23,
+    "endLine": 25,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 1,
+        "cyclomaticComplexity": 1,
+        "maintainabilityIndex": 99.86549707602339,
+        "averageMethodComplexity": 1,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 0
+        },
+        "complexity": 1,
+        "loc": 1
+      }
+    }
+  },
+  {
+    "name": "constructor",
+    "type": "method",
+    "startLine": 31,
+    "endLine": 33,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 1,
+        "cyclomaticComplexity": 1,
+        "maintainabilityIndex": 99.86549707602339,
+        "averageMethodComplexity": 1,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 0
+        },
+        "complexity": 1,
+        "loc": 1
+      }
+    }
+  },
+  {
+    "name": "makeSound",
+    "type": "method",
+    "startLine": 35,
+    "endLine": 37,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 1,
+        "cyclomaticComplexity": 1,
+        "maintainabilityIndex": 94.24932949213164,
+        "averageMethodComplexity": 1,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 6.339850002884624
+        },
+        "complexity": 1,
+        "loc": 1
+      }
+    }
+  },
+  {
+    "name": "getSpecies",
+    "type": "method",
+    "startLine": 39,
+    "endLine": 41,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 1,
+        "cyclomaticComplexity": 1,
+        "maintainabilityIndex": 99.86549707602339,
+        "averageMethodComplexity": 1,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 0
+        },
+        "complexity": 1,
+        "loc": 1
+      }
+    }
+  },
+  {
+    "name": "decrementLife",
+    "type": "method",
+    "startLine": 43,
+    "endLine": 47,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 2,
+        "cyclomaticComplexity": 2,
+        "maintainabilityIndex": 85.13913307656698,
+        "averageMethodComplexity": 2,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 14
+        },
+        "complexity": 2,
+        "loc": 2
+      }
+    }
+  }
+]

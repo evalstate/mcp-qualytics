@@ -1,0 +1,122 @@
+[
+  {
+    "name": "constructor",
+    "type": "method",
+    "startLine": 2,
+    "endLine": 2,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 0,
+        "cyclomaticComplexity": 1,
+        "maintainabilityIndex": 99.86549707602339,
+        "averageMethodComplexity": 1,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 0
+        },
+        "complexity": 1,
+        "loc": 0
+      }
+    }
+  },
+  {
+    "name": "simpleMethod",
+    "type": "method",
+    "startLine": 4,
+    "endLine": 6,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 1,
+        "cyclomaticComplexity": 1,
+        "maintainabilityIndex": 94.24932949213164,
+        "averageMethodComplexity": 1,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 6.339850002884624
+        },
+        "complexity": 1,
+        "loc": 1
+      }
+    }
+  },
+  {
+    "name": "complexMethod",
+    "type": "method",
+    "startLine": 8,
+    "endLine": 20,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 9,
+        "cyclomaticComplexity": 4,
+        "maintainabilityIndex": 64.22472501527231,
+        "averageMethodComplexity": 4,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 114.71363126237385
+        },
+        "complexity": 4,
+        "loc": 9
+      }
+    }
+  },
+  {
+    "name": "methodWithArrow",
+    "type": "method",
+    "startLine": 22,
+    "endLine": 27,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 3,
+        "cyclomaticComplexity": 1,
+        "maintainabilityIndex": 80.57246534743616,
+        "averageMethodComplexity": 1,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 18.575424759098897
+        },
+        "complexity": 1,
+        "loc": 3
+      }
+    }
+  },
+  {
+    "name": "<arrow>",
+    "type": "arrow",
+    "startLine": 23,
+    "endLine": 25,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 1,
+        "cyclomaticComplexity": 1,
+        "maintainabilityIndex": 93.57076430684866,
+        "averageMethodComplexity": 1,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 7.92481250360578
+        },
+        "complexity": 1,
+        "loc": 1
+      }
+    }
+  }
+]
