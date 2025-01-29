@@ -1,6 +1,6 @@
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/typescript-estree";
-import { MetricsProcessor } from "../types/metrics";
-import { traverseAST } from "../ast-utils";
+import { MetricsProcessor } from "../types/metrics.js";
+import { traverseAST } from "../ast-utils.js";
 
 class CyclomaticComplexityCalculator implements MetricsProcessor {
   private static readonly CONTROL_FLOW_NODES = new Set([
@@ -21,7 +21,7 @@ class CyclomaticComplexityCalculator implements MetricsProcessor {
   process(ast: TSESTree.Node): number {
     let complexity = 1; // Base complexity
 
-    traverseAST(ast, (node) => {
+    traverseAST(ast, (node: TSESTree.Node) => {
       if (this.isComplexityIncreasingNode(node)) {
         complexity++;
       }

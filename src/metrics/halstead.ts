@@ -1,7 +1,7 @@
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/typescript-estree";
-import { NodeMatcher, NodeProcessor, TypedNode } from "../types/nodes";
-import { MetricsProcessor } from "../types/metrics";
-import { traverseAST } from "../ast-utils";
+import { NodeMatcher } from "../types/nodes.js";
+import { MetricsProcessor } from "../types/metrics.js";
+import { traverseAST } from "../ast-utils.js";
 
 interface HalsteadData {
   operators: Set<string>;

@@ -1,5 +1,5 @@
 import { analyzeFile as internalAnalyzeFile, calculateMetrics } from './metrics.js';
-import type { FileAnalysis, CodeMetrics } from './types';
+import type { FileAnalysis, CodeMetrics } from './types.js';
 
 /**
  * Performs a detailed code quality analysis of a single TypeScript file.

@@ -1,9 +1,9 @@
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/typescript-estree";
-import { isFunctionLike } from "../types/nodes";
-import { MetricsCalculator, MetricsResult } from "../types/metrics";
-import { halsteadMetricsCalculator } from "./halstead";
-import { cyclomaticComplexityCalculator } from "./complexity";
-import { calculateMaintainabilityIndex } from "./maintainability";
+import { isFunctionLike } from "../types/nodes.js";
+import { MetricsCalculator, MetricsResult } from "../types/metrics.js";
+import { halsteadMetricsCalculator } from "./halstead.js";
+import { cyclomaticComplexityCalculator } from "./complexity.js";
+import { calculateMaintainabilityIndex } from "./maintainability.js";
 
 type FunctionType = 'function' | 'method' | 'arrow';
 

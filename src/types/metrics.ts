@@ -1,4 +1,4 @@
-import { HalsteadMetrics, CodeMetrics } from '../types';
+import { HalsteadMetrics, CodeMetrics } from '../types.js';
 
 export interface MetricsResult {
   metrics: CodeMetrics;

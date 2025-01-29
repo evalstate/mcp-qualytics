@@ -251,7 +251,7 @@ Functions:`;
 async function main() {
   const transport = new StdioServerTransport();
   
-  async function handleShutdown(reason = 'unknown') {    
+  async function handleShutdown(reason: string = 'unknown') {    
     console.error(`Initiating shutdown (reason: ${reason})`);
 
     try {

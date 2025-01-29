@@ -1,9 +1,9 @@
 import { parse, AST_NODE_TYPES, TSESTree } from "@typescript-eslint/typescript-estree";
-import { FileAnalysis, CodeMetrics } from "../types";
-import { functionAnalyzer } from "./function-analyzer";
-import { halsteadMetricsCalculator } from "./halstead";
-import { cyclomaticComplexityCalculator } from "./complexity";
-import { calculateMaintainabilityIndex } from "./maintainability";
+import { FileAnalysis, CodeMetrics } from "../types.js";
+import { functionAnalyzer } from "./function-analyzer.js";
+import { halsteadMetricsCalculator } from "./halstead.js";
+import { cyclomaticComplexityCalculator } from "./complexity.js";
+import { calculateMaintainabilityIndex } from "./maintainability.js";
 
 interface ParseOptions {
   loc: boolean;
