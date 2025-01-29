@@ -48,18 +48,33 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
       {
-        name: "analyze_file",
-        description: "Comprehensive analysis of a single TypeScript file, including file metrics and detailed function analysis",
+        name: "typescript_analyze_file",
+        description: `Performs a detailed code quality analysis of a single TypeScript file.
+
+Analysis includes:
+- File-level metrics: LOC, cyclomatic complexity, maintainability index
+- Function-level analysis: complexity, maintainability per function
+- Class analysis: inheritance depth, method counts
+- Detailed metrics for each function and method
+
+The maintainability index is on a scale of 0-100, where:
+- 0-20: Very difficult to maintain
+- 21-40: Difficult to maintain
+- 41-60: Moderately maintainable
+- 61-80: Highly maintainable 
+- 81-100: Extremely maintainable
+
+Output can be formatted as human-readable text or as a markdown table for better visualization.`,
         inputSchema: {
           type: "object",
           properties: {
             filepath: {
               type: "string",
-              description: "Path to the TypeScript file to analyze",
+              description: "Absolute or relative path to the TypeScript file to analyze",
             },
             format: {
               type: "string",
-              description: "Output format: 'text' for readable output or 'table' for markdown table",
+              description: "Output format: 'text' for detailed readable output with descriptions, or 'table' for a concise markdown table format",
               enum: ["text", "table"],
               default: "text"
             }
@@ -68,18 +83,33 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
-        name: "analyze_directory",
-        description: "Comprehensive analysis of all TypeScript files in a directory, including file and function metrics",
+        name: "typescript_analyze_directory",
+        description: `Recursively analyzes all TypeScript files in a directory to identify code quality patterns and potential issues.
+
+Provides a comprehensive overview of:
+- Code quality metrics for each file
+- Function-level analysis (optional)
+- Project-wide patterns and potential issues
+- Relative complexity between files
+
+The analysis helps identify:
+- Complex files that may need refactoring
+- Inconsistent code patterns
+- Files with maintainability issues
+- Deep inheritance hierarchies
+
+Results are presented in a markdown table format for easy comparison between files and functions.
+Use include_functions=false for a higher-level overview of just file metrics.`,
         inputSchema: {
           type: "object",
           properties: {
             directory: {
               type: "string",
-              description: "Directory path to scan for TypeScript files",
+              description: "Absolute or relative path to the directory containing TypeScript files. Will recursively search subdirectories, excluding node_modules and hidden directories.",
             },
             include_functions: {
               type: "boolean",
-              description: "Whether to include function-level metrics in the output",
+              description: "When true, includes detailed metrics for every function/method in each file. Set to false for a more concise file-level overview.",
               default: true
             }
           },
@@ -92,7 +122,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   switch (request.params.name) {
-    case "analyze_file": {
+    case "typescript_analyze_file": {
       const { filepath, format = 'text' } = request.params.arguments as { filepath: string, format?: 'text' | 'table' };
       try {
         const code = await fs.readFile(filepath, 'utf-8');
@@ -154,7 +184,7 @@ Functions:`;
       }
     }
 
-    case "analyze_directory": {
+    case "typescript_analyze_directory": {
       const { directory, include_functions = true } = request.params.arguments as { 
         directory: string, 
         include_functions?: boolean 

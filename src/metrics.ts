@@ -45,27 +45,41 @@ function calculateMetricsForNode(node: TSESTree.Node): CodeMetrics {
   };
 }
 
-function getFunctionName(node: TSESTree.Node): string {
-  switch (node.type) {
-    case AST_NODE_TYPES.FunctionDeclaration:
-      return node.id?.name || '<anonymous>';
-    case AST_NODE_TYPES.MethodDefinition:
-      return node.key.type === AST_NODE_TYPES.Identifier ? node.key.name : '<computed>';
-    case AST_NODE_TYPES.ArrowFunctionExpression:
-      if (node.parent?.type === AST_NODE_TYPES.VariableDeclarator && 
-          node.parent.id.type === AST_NODE_TYPES.Identifier) {
-        return node.parent.id.name;
-      }
-      return '<arrow>';
-    case AST_NODE_TYPES.FunctionExpression:
-      if (node.parent?.type === AST_NODE_TYPES.VariableDeclarator && 
-          node.parent.id.type === AST_NODE_TYPES.Identifier) {
-        return node.parent.id.name;
-      }
-      return '<anonymous>';
-    default:
-      return '<unknown>';
+interface FunctionNameExtractor {
+  (node: TSESTree.Node): string;
+}
+
+const functionNameExtractors: Record<string, FunctionNameExtractor> = {
+  [AST_NODE_TYPES.FunctionDeclaration]: (node: TSESTree.Node) => 
+    (node as TSESTree.FunctionDeclaration).id?.name || '<anonymous>',
+
+  [AST_NODE_TYPES.MethodDefinition]: (node: TSESTree.Node) => {
+    const methodNode = node as TSESTree.MethodDefinition;
+    return methodNode.key.type === AST_NODE_TYPES.Identifier ? methodNode.key.name : '<computed>';
+  },
+
+  [AST_NODE_TYPES.ArrowFunctionExpression]: (node: TSESTree.Node) => {
+    const parent = node.parent;
+    if (parent?.type === AST_NODE_TYPES.VariableDeclarator && 
+        parent.id.type === AST_NODE_TYPES.Identifier) {
+      return parent.id.name;
+    }
+    return '<arrow>';
+  },
+
+  [AST_NODE_TYPES.FunctionExpression]: (node: TSESTree.Node) => {
+    const parent = node.parent;
+    if (parent?.type === AST_NODE_TYPES.VariableDeclarator && 
+        parent.id.type === AST_NODE_TYPES.Identifier) {
+      return parent.id.name;
+    }
+    return '<anonymous>';
   }
+};
+
+function getFunctionName(node: TSESTree.Node): string {
+  const extractor = functionNameExtractors[node.type];
+  return extractor ? extractor(node) : '<unknown>';
 }
 
 function getFunctionType(node: TSESTree.Node): 'function' | 'method' | 'arrow' {
@@ -82,20 +96,73 @@ function getFunctionType(node: TSESTree.Node): 'function' | 'method' | 'arrow' {
   }
 }
 
-export function analyzeFile(code: string, filePath: string): FileAnalysis {
-  let ast: TSESTree.Program;
+interface ParseOptions {
+  loc: boolean;
+  range: boolean;
+  comment: boolean;
+  tokens: boolean;
+  sourceType: "module";
+  ecmaFeatures: {
+    jsx: boolean;
+  };
+}
 
+const DEFAULT_PARSE_OPTIONS: ParseOptions = {
+  loc: true,
+  range: true,
+  comment: true,
+  tokens: true,
+  sourceType: "module",
+  ecmaFeatures: {
+    jsx: true,
+  },
+};
+
+function parseTypeScript(code: string): TSESTree.Program {
+  return parse(code, DEFAULT_PARSE_OPTIONS);
+}
+
+function isAnalyzableFunction(node: TSESTree.Node): boolean {
+  return (
+    node.type === AST_NODE_TYPES.FunctionDeclaration ||
+    node.type === AST_NODE_TYPES.FunctionExpression ||
+    node.type === AST_NODE_TYPES.ArrowFunctionExpression ||
+    node.type === AST_NODE_TYPES.MethodDefinition
+  );
+}
+
+function analyzeFunctionNode(node: TSESTree.Node): FunctionInfo {
+  const functionNode = node.type === AST_NODE_TYPES.MethodDefinition 
+    ? (node as TSESTree.MethodDefinition).value 
+    : node;
+  
+  const metrics = calculateMetricsForNode(functionNode);
+  const loc = node.loc!;
+
+  return {
+    name: getFunctionName(node),
+    type: getFunctionType(node),
+    startLine: loc.start.line,
+    endLine: loc.end.line,
+    metrics,
+  };
+}
+
+export function analyzeFile(code: string, filePath: string): FileAnalysis {
   try {
-    ast = parse(code, {
-      loc: true,
-      range: true,
-      comment: true,
-      tokens: true,
-      sourceType: "module",
-      ecmaFeatures: {
-        jsx: true,
-      },
+    const ast = parseTypeScript(code);
+    const functions: FunctionInfo[] = [];
+
+    traverseAST(ast, (node) => {
+      if (isAnalyzableFunction(node)) {
+        functions.push(analyzeFunctionNode(node));
+      }
     });
+
+    return {
+      fileMetrics: calculateMetricsForNode(ast),
+      functions: functions.sort((a, b) => a.startLine - b.startLine),
+    };
   } catch (error: any) {
     console.error(`Failed to parse ${filePath}: ${error.message}`);
     return {
@@ -111,34 +178,6 @@ export function analyzeFile(code: string, filePath: string): FileAnalysis {
       functions: [],
     };
   }
-
-  const functions: FunctionInfo[] = [];
-  
-  traverseAST(ast, (node) => {
-    if (
-      node.type === AST_NODE_TYPES.FunctionDeclaration ||
-      node.type === AST_NODE_TYPES.FunctionExpression ||
-      node.type === AST_NODE_TYPES.ArrowFunctionExpression ||
-      node.type === AST_NODE_TYPES.MethodDefinition
-    ) {
-      const functionNode = node.type === AST_NODE_TYPES.MethodDefinition ? node.value : node;
-      const metrics = calculateMetricsForNode(functionNode);
-      const loc = node.loc!;
-
-      functions.push({
-        name: getFunctionName(node),
-        type: getFunctionType(node),
-        startLine: loc.start.line,
-        endLine: loc.end.line,
-        metrics,
-      });
-    }
-  });
-
-  return {
-    fileMetrics: calculateMetricsForNode(ast),
-    functions: functions.sort((a, b) => a.startLine - b.startLine),
-  };
 }
 
 export function calculateMetrics(code: string, filePath: string): CodeMetrics {
@@ -156,50 +195,95 @@ export function countLogicalLinesOfCode(ast: TSESTree.Node): number {
   return loc;
 }
 
-export function calculateCyclomaticComplexity(ast: TSESTree.Node): number {
-  let complexity = 0;
-  traverseAST(ast, (node) => {
-    switch (node.type) {
-      case AST_NODE_TYPES.IfStatement:
-      case AST_NODE_TYPES.ForStatement:
-      case AST_NODE_TYPES.ForInStatement:
-      case AST_NODE_TYPES.ForOfStatement:
-      case AST_NODE_TYPES.WhileStatement:
-      case AST_NODE_TYPES.DoWhileStatement:
-      case AST_NODE_TYPES.CatchClause:
-      case AST_NODE_TYPES.ConditionalExpression:
-        complexity++;
-        break;
-      case AST_NODE_TYPES.SwitchCase:
-        if ((node as TSESTree.SwitchCase).test !== null) {
-          complexity++;
-        }
-        break;
-      case AST_NODE_TYPES.LogicalExpression:
-        if (
-          ["&&", "||", "??"].includes(
-            (node as TSESTree.LogicalExpression).operator
-          )
-        ) {
-          complexity++;
-        }
-        break;
-      case AST_NODE_TYPES.TryStatement:
-      case AST_NODE_TYPES.ThrowStatement:
-        complexity++;
-        break;
-    }
-  });
-  return complexity + 1;
+const CONTROL_FLOW_NODES = new Set([
+  AST_NODE_TYPES.IfStatement,
+  AST_NODE_TYPES.ForStatement,
+  AST_NODE_TYPES.ForInStatement,
+  AST_NODE_TYPES.ForOfStatement,
+  AST_NODE_TYPES.WhileStatement,
+  AST_NODE_TYPES.DoWhileStatement,
+  AST_NODE_TYPES.CatchClause,
+  AST_NODE_TYPES.ConditionalExpression,
+  AST_NODE_TYPES.TryStatement,
+  AST_NODE_TYPES.ThrowStatement
+]);
+
+const LOGICAL_OPERATORS = new Set(["&&", "||", "??"]);
+
+function isComplexityIncreasingNode(node: TSESTree.Node): boolean {
+  if (CONTROL_FLOW_NODES.has(node.type)) {
+    return true;
+  }
+
+  if (node.type === AST_NODE_TYPES.SwitchCase) {
+    return (node as TSESTree.SwitchCase).test !== null;
+  }
+
+  if (node.type === AST_NODE_TYPES.LogicalExpression) {
+    return LOGICAL_OPERATORS.has((node as TSESTree.LogicalExpression).operator);
+  }
+
+  return false;
 }
 
-export function calculateHalsteadMetrics(
-  ast: TSESTree.Node
-): HalsteadMetrics {
-  const operators = new Set<string>();
-  const operands = new Set<string>();
-  let operatorCount = 0;
-  let operandCount = 0;
+export function calculateCyclomaticComplexity(ast: TSESTree.Node): number {
+  let complexity = 1; // Base complexity is 1
+
+  traverseAST(ast, (node) => {
+    if (isComplexityIncreasingNode(node)) {
+      complexity++;
+    }
+  });
+
+  return complexity;
+}
+
+interface HalsteadData {
+  operators: Set<string>;
+  operands: Set<string>;
+  operatorCount: number;
+  operandCount: number;
+}
+
+function processExpressionOperator(
+  node: TSESTree.BinaryExpression | TSESTree.LogicalExpression | TSESTree.AssignmentExpression | TSESTree.UpdateExpression | TSESTree.UnaryExpression,
+  data: HalsteadData
+): void {
+  data.operators.add(node.operator);
+  data.operatorCount++;
+}
+
+function processIdentifier(node: TSESTree.Identifier, data: HalsteadData): void {
+  data.operands.add(node.name);
+  data.operandCount++;
+}
+
+function processLiteral(node: TSESTree.Literal, data: HalsteadData): void {
+  data.operands.add(String(node.value));
+  data.operandCount++;
+}
+
+function processCallExpression(node: TSESTree.CallExpression, data: HalsteadData): void {
+  if (node.callee.type === AST_NODE_TYPES.Identifier) {
+    data.operators.add(`${node.callee.name}()`);
+    data.operatorCount++;
+  }
+}
+
+function processMemberExpression(node: TSESTree.MemberExpression, data: HalsteadData): void {
+  if (node.property.type === AST_NODE_TYPES.Identifier) {
+    data.operands.add(node.property.name);
+    data.operandCount++;
+  }
+}
+
+function gatherHalsteadMetrics(ast: TSESTree.Node): HalsteadData {
+  const data: HalsteadData = {
+    operators: new Set<string>(),
+    operands: new Set<string>(),
+    operatorCount: 0,
+    operandCount: 0
+  };
 
   traverseAST(ast, (node) => {
     switch (node.type) {
@@ -208,58 +292,43 @@ export function calculateHalsteadMetrics(
       case AST_NODE_TYPES.AssignmentExpression:
       case AST_NODE_TYPES.UpdateExpression:
       case AST_NODE_TYPES.UnaryExpression:
-        const operatorNode = node as
-          | TSESTree.BinaryExpression
-          | TSESTree.LogicalExpression
-          | TSESTree.AssignmentExpression
-          | TSESTree.UpdateExpression
-          | TSESTree.UnaryExpression;
-        operators.add(operatorNode.operator);
-        operatorCount++;
+        processExpressionOperator(node as any, data);
         break;
       case AST_NODE_TYPES.Identifier:
-        const identifierNode = node as TSESTree.Identifier;
-        operands.add(identifierNode.name);
-        operandCount++;
+        processIdentifier(node as TSESTree.Identifier, data);
         break;
       case AST_NODE_TYPES.Literal:
-        const literalNode = node as TSESTree.Literal;
-        operands.add(String(literalNode.value));
-        operandCount++;
+        processLiteral(node as TSESTree.Literal, data);
         break;
       case AST_NODE_TYPES.CallExpression:
-        const callNode = node as TSESTree.CallExpression;
-        if (callNode.callee.type === AST_NODE_TYPES.Identifier) {
-          operators.add(`${callNode.callee.name}()`);
-          operatorCount++;
-        }
+        processCallExpression(node as TSESTree.CallExpression, data);
         break;
       case AST_NODE_TYPES.MemberExpression:
-        const memberNode = node as TSESTree.MemberExpression;
-        if (memberNode.property.type === AST_NODE_TYPES.Identifier) {
-          operands.add(memberNode.property.name);
-          operandCount++;
-        }
+        processMemberExpression(node as TSESTree.MemberExpression, data);
         break;
       case AST_NODE_TYPES.ConditionalExpression:
-        operators.add("?:");
-        operatorCount++;
+        data.operators.add("?:");
+        data.operatorCount++;
         break;
       case AST_NODE_TYPES.NewExpression:
-        operators.add("new");
-        operatorCount++;
+        data.operators.add("new");
+        data.operatorCount++;
         break;
     }
   });
 
-  const n1 = operators.size;
-  const n2 = operands.size;
-  const N1 = operatorCount;
-  const N2 = operandCount;
-  const vocabulary = n1 + n2;
-  const length = N1 + N2;
-  const volume = vocabulary > 0 ? length * Math.log2(vocabulary) : 0;
+  return data;
+}
 
+function calculateVolumeMetric(data: HalsteadData): number {
+  const vocabulary = data.operators.size + data.operands.size;
+  const length = data.operatorCount + data.operandCount;
+  return vocabulary > 0 ? length * Math.log2(vocabulary) : 0;
+}
+
+export function calculateHalsteadMetrics(ast: TSESTree.Node): HalsteadMetrics {
+  const data = gatherHalsteadMetrics(ast);
+  const volume = calculateVolumeMetric(data);
   return { volume };
 }
 
