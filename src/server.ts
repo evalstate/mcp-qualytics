@@ -48,36 +48,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
       {
-        name: "get_combined_metrics_table",
-        description: "Get a markdown table of metrics for all files and their functions in a directory",
-        inputSchema: {
-          type: "object",
-          properties: {
-            directory: {
-              type: "string",
-              description: "Directory path to scan for TypeScript files",
-            },
-          },
-          required: ["directory"],
-        },
-      },
-      {
-        name: "list_typescript_files",
-        description: "Lists all TypeScript files in the specified directory",
-        inputSchema: {
-          type: "object",
-          properties: {
-            directory: {
-              type: "string",
-              description: "Directory path to scan for TypeScript files",
-            },
-          },
-          required: ["directory"],
-        },
-      },
-      {
-        name: "get_file_metrics",
-        description: "Get metrics for a specific TypeScript file",
+        name: "analyze_file",
+        description: "Comprehensive analysis of a single TypeScript file, including file metrics and detailed function analysis",
         inputSchema: {
           type: "object",
           properties: {
@@ -85,27 +57,19 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: "string",
               description: "Path to the TypeScript file to analyze",
             },
-          },
-          required: ["filepath"],
-        },
-      },
-      {
-        name: "get_function_metrics",
-        description: "Get detailed metrics for each function in a TypeScript file",
-        inputSchema: {
-          type: "object",
-          properties: {
-            filepath: {
+            format: {
               type: "string",
-              description: "Path to the TypeScript file to analyze",
-            },
+              description: "Output format: 'text' for readable output or 'table' for markdown table",
+              enum: ["text", "table"],
+              default: "text"
+            }
           },
           required: ["filepath"],
         },
       },
       {
-        name: "get_metrics_table",
-        description: "Get a markdown table of metrics for all TypeScript files in a directory",
+        name: "analyze_directory",
+        description: "Comprehensive analysis of all TypeScript files in a directory, including file and function metrics",
         inputSchema: {
           type: "object",
           properties: {
@@ -113,22 +77,13 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: "string",
               description: "Directory path to scan for TypeScript files",
             },
+            include_functions: {
+              type: "boolean",
+              description: "Whether to include function-level metrics in the output",
+              default: true
+            }
           },
           required: ["directory"],
-        },
-      },
-      {
-        name: "get_function_metrics_table",
-        description: "Get a markdown table of metrics for all functions in a TypeScript file",
-        inputSchema: {
-          type: "object",
-          properties: {
-            filepath: {
-              type: "string",
-              description: "Path to the TypeScript file to analyze",
-            },
-          },
-          required: ["filepath"],
         },
       },
     ],
@@ -137,179 +92,73 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   switch (request.params.name) {
-    case "list_typescript_files": {
-      const { directory } = request.params.arguments as { directory: string };
-      try {
-        const files = await findTypeScriptFiles(directory);
-        return {
-          content: [
-            {
-              type: "text",
-              text: "Found TypeScript files:\n" + files.join('\n'),
-            },
-          ],
-        };
-      } catch (error) {
-        return {
-          isError: true,
-          content: [
-            {
-              type: "text",
-              text: `Error listing files: ${error}`,
-            },
-          ],
-        };
-      }
-    }
-
-    case "get_file_metrics": {
-      const { filepath } = request.params.arguments as { filepath: string };
-      try {
-        const code = await fs.readFile(filepath, 'utf-8');
-        const metrics = calculateMetrics(code, filepath);
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Metrics for ${filepath}:
-- Lines of Code: ${metrics.linesOfCode}
-- Cyclomatic Complexity: ${metrics.cyclomaticComplexity}
-- Maintainability Index: ${metrics.maintainabilityIndex.toFixed(2)}
-- Class Count: ${metrics.classCount}
-- Method Count: ${metrics.methodCount}
-- Average Method Complexity: ${metrics.averageMethodComplexity.toFixed(2)}
-- Depth of Inheritance: ${metrics.depthOfInheritance}`,
-            },
-          ],
-        };
-      } catch (error) {
-        return {
-          isError: true,
-          content: [
-            {
-              type: "text",
-              text: `Error analyzing file: ${error}`,
-            },
-          ],
-        };
-      }
-    }
-
-    case "get_function_metrics": {
-      const { filepath } = request.params.arguments as { filepath: string };
+    case "analyze_file": {
+      const { filepath, format = 'text' } = request.params.arguments as { filepath: string, format?: 'text' | 'table' };
       try {
         const code = await fs.readFile(filepath, 'utf-8');
         const analysis = analyzeFile(code, filepath);
         
-        const functionsText = analysis.functions
-          .map(fn => `
-Function: ${fn.name} (${fn.type})
-Lines: ${fn.startLine}-${fn.endLine}
-- Lines of Code: ${fn.metrics.linesOfCode}
-- Cyclomatic Complexity: ${fn.metrics.cyclomaticComplexity}
-- Maintainability Index: ${fn.metrics.maintainabilityIndex.toFixed(2)}
-- Class Count: ${fn.metrics.classCount}
-- Method Count: ${fn.metrics.methodCount}
-- Average Method Complexity: ${fn.metrics.averageMethodComplexity.toFixed(2)}
-- Depth of Inheritance: ${fn.metrics.depthOfInheritance}`)
-          .join('\n');
+        if (format === 'table') {
+          // Generate table format
+          let tableRows = [
+            '| Scope | Name | Type | Lines | LOC | Complexity | Maintainability | Methods | Avg Complexity |',
+            '|--------|------|------|-------|-----|------------|----------------|----------|----------------|',
+            // File level metrics
+            `| file | ${path.basename(filepath)} | - | - | ${analysis.fileMetrics.linesOfCode} | ${analysis.fileMetrics.cyclomaticComplexity} | ${analysis.fileMetrics.maintainabilityIndex.toFixed(2)} | ${analysis.fileMetrics.methodCount} | ${analysis.fileMetrics.averageMethodComplexity.toFixed(2)} |`
+          ];
+          
+          // Function level metrics
+          for (const fn of analysis.functions) {
+            tableRows.push(
+              `| function | ${fn.name} | ${fn.type} | ${fn.startLine}-${fn.endLine} | ${fn.metrics.linesOfCode} | ${fn.metrics.cyclomaticComplexity} | ${fn.metrics.maintainabilityIndex.toFixed(2)} | ${fn.metrics.methodCount} | ${fn.metrics.averageMethodComplexity.toFixed(2)} |`
+            );
+          }
+          
+          return {
+            content: [{ type: "text", text: tableRows.join('\n') }]
+          };
+        } else {
+          // Generate text format
+          const fileText = `File: ${filepath}
+Metrics:
+- Lines of Code: ${analysis.fileMetrics.linesOfCode}
+- Cyclomatic Complexity: ${analysis.fileMetrics.cyclomaticComplexity}
+- Maintainability Index: ${analysis.fileMetrics.maintainabilityIndex.toFixed(2)}
+- Class Count: ${analysis.fileMetrics.classCount}
+- Method Count: ${analysis.fileMetrics.methodCount}
+- Average Method Complexity: ${analysis.fileMetrics.averageMethodComplexity.toFixed(2)}
+- Depth of Inheritance: ${analysis.fileMetrics.depthOfInheritance}
 
-        return {
-          content: [
-            {
-              type: "text",
-              text: `File: ${filepath}\n\nFunctions:\n${functionsText}`,
-            },
-          ],
-        };
-      } catch (error) {
-        return {
-          isError: true,
-          content: [
-            {
-              type: "text",
-              text: `Error analyzing functions: ${error}`,
-            },
-          ],
-        };
-      }
-    }
+Functions:`;
 
-    case "get_metrics_table": {
-      const { directory } = request.params.arguments as { directory: string };
-      try {
-        const files = await findTypeScriptFiles(directory);
-        let tableRows = ['| File | LOC | Complexity | Maintainability | Classes | Methods | Avg Method Complexity | Inheritance |'];
-        tableRows.push('|------|-----|------------|----------------|----------|----------|---------------------|-------------|');
+          const functionsText = analysis.functions
+            .map(fn => `
+  ${fn.name} (${fn.type})
+  Lines: ${fn.startLine}-${fn.endLine}
+  - Lines of Code: ${fn.metrics.linesOfCode}
+  - Cyclomatic Complexity: ${fn.metrics.cyclomaticComplexity}
+  - Maintainability Index: ${fn.metrics.maintainabilityIndex.toFixed(2)}
+  - Methods: ${fn.metrics.methodCount}
+  - Average Method Complexity: ${fn.metrics.averageMethodComplexity.toFixed(2)}`
+            ).join('\n');
 
-        for (const file of files) {
-          const code = await fs.readFile(file, 'utf-8');
-          const metrics = calculateMetrics(code, file);
-          const relativePath = path.relative(directory, file);
-          tableRows.push(
-            `| ${relativePath} | ${metrics.linesOfCode} | ${metrics.cyclomaticComplexity} | ${metrics.maintainabilityIndex.toFixed(2)} | ${metrics.classCount} | ${metrics.methodCount} | ${metrics.averageMethodComplexity.toFixed(2)} | ${metrics.depthOfInheritance} |`
-          );
+          return {
+            content: [{ type: "text", text: `${fileText}${functionsText}` }]
+          };
         }
-
-        return {
-          content: [
-            {
-              type: "text",
-              text: tableRows.join('\n'),
-            },
-          ],
-        };
       } catch (error) {
         return {
           isError: true,
-          content: [
-            {
-              type: "text",
-              text: `Error generating metrics table: ${error}`,
-            },
-          ],
+          content: [{ type: "text", text: `Error analyzing file: ${error}` }]
         };
       }
     }
 
-    case "get_function_metrics_table": {
-      const { filepath } = request.params.arguments as { filepath: string };
-      try {
-        const code = await fs.readFile(filepath, 'utf-8');
-        const analysis = analyzeFile(code, filepath);
-        
-        let tableRows = ['| Function | Type | Lines | LOC | Complexity | Maintainability | Methods | Avg Complexity |'];
-        tableRows.push('|----------|------|-------|-----|------------|----------------|----------|----------------|');
-
-        for (const fn of analysis.functions) {
-          tableRows.push(
-            `| ${fn.name} | ${fn.type} | ${fn.startLine}-${fn.endLine} | ${fn.metrics.linesOfCode} | ${fn.metrics.cyclomaticComplexity} | ${fn.metrics.maintainabilityIndex.toFixed(2)} | ${fn.metrics.methodCount} | ${fn.metrics.averageMethodComplexity.toFixed(2)} |`
-          );
-        }
-
-        return {
-          content: [
-            {
-              type: "text",
-              text: tableRows.join('\n'),
-            },
-          ],
-        };
-      } catch (error) {
-        return {
-          isError: true,
-          content: [
-            {
-              type: "text",
-              text: `Error generating function metrics table: ${error}`,
-            },
-          ],
-        };
-      }
-    }
-
-    case "get_combined_metrics_table": {
-      const { directory } = request.params.arguments as { directory: string };
+    case "analyze_directory": {
+      const { directory, include_functions = true } = request.params.arguments as { 
+        directory: string, 
+        include_functions?: boolean 
+      };
       try {
         const files = await findTypeScriptFiles(directory);
         let tableRows = ['| File | Scope | Name | Type | Lines | LOC | Complexity | Maintainability | Methods | Avg Complexity |'];
@@ -325,11 +174,13 @@ Lines: ${fn.startLine}-${fn.endLine}
             `| ${relativePath} | file | - | - | - | ${analysis.fileMetrics.linesOfCode} | ${analysis.fileMetrics.cyclomaticComplexity} | ${analysis.fileMetrics.maintainabilityIndex.toFixed(2)} | ${analysis.fileMetrics.methodCount} | ${analysis.fileMetrics.averageMethodComplexity.toFixed(2)} |`
           );
           
-          // Add function-level metrics
-          for (const fn of analysis.functions) {
-            tableRows.push(
-              `| ${relativePath} | function | ${fn.name} | ${fn.type} | ${fn.startLine}-${fn.endLine} | ${fn.metrics.linesOfCode} | ${fn.metrics.cyclomaticComplexity} | ${fn.metrics.maintainabilityIndex.toFixed(2)} | ${fn.metrics.methodCount} | ${fn.metrics.averageMethodComplexity.toFixed(2)} |`
-            );
+          // Add function-level metrics if requested
+          if (include_functions) {
+            for (const fn of analysis.functions) {
+              tableRows.push(
+                `| ${relativePath} | function | ${fn.name} | ${fn.type} | ${fn.startLine}-${fn.endLine} | ${fn.metrics.linesOfCode} | ${fn.metrics.cyclomaticComplexity} | ${fn.metrics.maintainabilityIndex.toFixed(2)} | ${fn.metrics.methodCount} | ${fn.metrics.averageMethodComplexity.toFixed(2)} |`
+              );
+            }
           }
         }
 
@@ -347,7 +198,7 @@ Lines: ${fn.startLine}-${fn.endLine}
           content: [
             {
               type: "text",
-              text: `Error generating combined metrics table: ${error}`,
+              text: `Error analyzing directory: ${error}`,
             },
           ],
         };
