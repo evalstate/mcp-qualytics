@@ -1,4 +1,4 @@
-import { analyzeFile as internalAnalyzeFile, calculateMetrics } from './metrics.js';
+import { analyzeFile as internalAnalyzeFile, calculateMetrics } from './metrics/index.js';
 import type { FileAnalysis, CodeMetrics } from './types.js';
 
 /**
