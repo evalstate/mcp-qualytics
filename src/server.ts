@@ -139,6 +139,11 @@ Output can be formatted as human-readable text or as a markdown table for better
               description: "Output format: 'text' for detailed readable output with descriptions, or 'table' for a concise markdown table format",
               enum: ["text", "table"],
               default: "text"
+            },
+            include_source: {
+              type: "boolean",
+              description: "When true, includes the source file as an embedded resource",
+              default: false
             }
           },
           required: ["filepath"],
@@ -259,10 +264,16 @@ Functions:`;
     }
 
     case "typescript_analyze_file": {
-      const { filepath, format = 'text' } = request.params.arguments as { filepath: string, format?: 'text' | 'table' };
+      const { filepath, format = 'text', include_source = false } = request.params.arguments as { 
+        filepath: string, 
+        format?: 'text' | 'table',
+        include_source?: boolean 
+      };
       try {
         const code = await fs.readFile(filepath, 'utf-8');
         const analysis = typescriptAnalyzeFile(code, filepath);
+        
+        const content = [];
         
         if (format === 'table') {
           // Generate table format
@@ -280,9 +291,7 @@ Functions:`;
             );
           }
           
-          return {
-            content: [{ type: "text", text: tableRows.join('\n') }]
-          };
+          content.push({ type: "text", text: tableRows.join('\n') });
         } else {
           // Generate text format
           const fileText = `File: ${filepath}
@@ -308,10 +317,24 @@ Functions:`;
   - Average Method Complexity: ${fn.metrics.averageMethodComplexity.toFixed(2)}`
             ).join('\n');
 
-          return {
-            content: [{ type: "text", text: `${fileText}${functionsText}` }]
-          };
+          content.push({ type: "text", text: `${fileText}${functionsText}` });
         }
+
+        // Add source file as embedded resource if requested
+        if (include_source) {
+          console.error('Adding source file as resource:', filepath);
+          content.push({
+            type: "resource",
+            uri: filepath,
+            mimeType: "application/x-typescript",
+            text: code
+          });
+          console.error('Content array length:', content.length);
+        }
+
+        const response = { content };
+        console.error('Final response:', JSON.stringify(response));
+        return response;
       } catch (error) {
         return {
           isError: true,

@@ -1,15 +1,34 @@
 {
-  "name": "mcp-qualytics",
+  "name": "@llmindset/mcp-qualytics",
   "displayName": "MCP Qualytics",
   "description": "A Code Metric Analysis MCP Server",
   "version": "0.1.0",
   "license": "MIT",
   "type": "module",
-  "main": "./out/server.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "mcp-qualytics": "./dist/server.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/evalstate/mcp-qualytics.git"
+  },
+  "bugs": {
+    "url": "https://github.com/evalstate/mcp-qualytics/issues"
+  },
+  "homepage": "https://github.com/evalstate/mcp-qualytics#readme",
   "scripts": {
     "build": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "start": "node ./out/server.js"
+    "start": "node ./dist/server.js",
+    "prepublishOnly": "npm run build",
+    "postbuild": "node -e \"process.platform !== 'win32' && require('child_process').execSync('chmod +x dist/server.js')\""
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.6.0",
