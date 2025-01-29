@@ -3,53 +3,25 @@ import {
   TSESTree,
   parse,
 } from "@typescript-eslint/typescript-estree";
-import { isExecutableNode, traverseAST } from "./ast-utils";
-import { CodeMetrics, HalsteadMetrics } from "./types";
+import { isExecutableNode, traverseAST } from "./ast-utils.js";
+import { CodeMetrics, HalsteadMetrics, FunctionInfo, FileAnalysis } from "./types.js";
 
-export function calculateMetrics(code: string, filePath: string): CodeMetrics {
-  let ast: TSESTree.Program;
-
-  try {
-    ast = parse(code, {
-      loc: true,
-      range: true,
-      comment: true,
-      tokens: true,
-      sourceType: "module",
-      ecmaFeatures: {
-        jsx: true,
-      },
-    });
-  } catch (error: any) {
-    console.error(`Failed to parse ${filePath}: ${error.message}`);
-    // Return default values if parsing fails
-    return {
-      linesOfCode: 0,
-      cyclomaticComplexity: 0,
-      maintainabilityIndex: 0,
-      depthOfInheritance: 0,
-      classCount: 0,
-      methodCount: 0,
-      averageMethodComplexity: 0,
-    };
-  }
-
-  const linesOfCode = countLogicalLinesOfCode(ast);
-  const cyclomaticComplexity = calculateCyclomaticComplexity(ast);
-  const halsteadMetrics = calculateHalsteadMetrics(ast);
+function calculateMetricsForNode(node: TSESTree.Node): CodeMetrics {
+  const linesOfCode = countLogicalLinesOfCode(node);
+  const cyclomaticComplexity = calculateCyclomaticComplexity(node);
+  const halsteadMetrics = calculateHalsteadMetrics(node);
   const maintainabilityIndex = calculateMaintainabilityIndex(
     halsteadMetrics.volume,
     cyclomaticComplexity,
     linesOfCode
   );
-  const classStructure = analyzeClassStructure(ast);
-  const functionMetrics = analyzeFunctionStructure(ast);
+  const classStructure = analyzeClassStructure(node);
+  const functionMetrics = analyzeFunctionStructure(node);
   const averageMethodComplexity =
     functionMetrics.functionCount > 0
       ? cyclomaticComplexity / functionMetrics.functionCount
       : 0;
 
-  // Ensure no NaN or Infinity values are returned
   return {
     linesOfCode: isFinite(linesOfCode) ? linesOfCode : 0,
     cyclomaticComplexity: isFinite(cyclomaticComplexity)
@@ -73,7 +45,108 @@ export function calculateMetrics(code: string, filePath: string): CodeMetrics {
   };
 }
 
-export function countLogicalLinesOfCode(ast: TSESTree.Program): number {
+function getFunctionName(node: TSESTree.Node): string {
+  switch (node.type) {
+    case AST_NODE_TYPES.FunctionDeclaration:
+      return node.id?.name || '<anonymous>';
+    case AST_NODE_TYPES.MethodDefinition:
+      return node.key.type === AST_NODE_TYPES.Identifier ? node.key.name : '<computed>';
+    case AST_NODE_TYPES.ArrowFunctionExpression:
+      if (node.parent?.type === AST_NODE_TYPES.VariableDeclarator && 
+          node.parent.id.type === AST_NODE_TYPES.Identifier) {
+        return node.parent.id.name;
+      }
+      return '<arrow>';
+    case AST_NODE_TYPES.FunctionExpression:
+      if (node.parent?.type === AST_NODE_TYPES.VariableDeclarator && 
+          node.parent.id.type === AST_NODE_TYPES.Identifier) {
+        return node.parent.id.name;
+      }
+      return '<anonymous>';
+    default:
+      return '<unknown>';
+  }
+}
+
+function getFunctionType(node: TSESTree.Node): 'function' | 'method' | 'arrow' {
+  switch (node.type) {
+    case AST_NODE_TYPES.FunctionDeclaration:
+    case AST_NODE_TYPES.FunctionExpression:
+      return 'function';
+    case AST_NODE_TYPES.MethodDefinition:
+      return 'method';
+    case AST_NODE_TYPES.ArrowFunctionExpression:
+      return 'arrow';
+    default:
+      return 'function';
+  }
+}
+
+export function analyzeFile(code: string, filePath: string): FileAnalysis {
+  let ast: TSESTree.Program;
+
+  try {
+    ast = parse(code, {
+      loc: true,
+      range: true,
+      comment: true,
+      tokens: true,
+      sourceType: "module",
+      ecmaFeatures: {
+        jsx: true,
+      },
+    });
+  } catch (error: any) {
+    console.error(`Failed to parse ${filePath}: ${error.message}`);
+    return {
+      fileMetrics: {
+        linesOfCode: 0,
+        cyclomaticComplexity: 0,
+        maintainabilityIndex: 0,
+        depthOfInheritance: 0,
+        classCount: 0,
+        methodCount: 0,
+        averageMethodComplexity: 0,
+      },
+      functions: [],
+    };
+  }
+
+  const functions: FunctionInfo[] = [];
+  
+  traverseAST(ast, (node) => {
+    if (
+      node.type === AST_NODE_TYPES.FunctionDeclaration ||
+      node.type === AST_NODE_TYPES.FunctionExpression ||
+      node.type === AST_NODE_TYPES.ArrowFunctionExpression ||
+      node.type === AST_NODE_TYPES.MethodDefinition
+    ) {
+      const functionNode = node.type === AST_NODE_TYPES.MethodDefinition ? node.value : node;
+      const metrics = calculateMetricsForNode(functionNode);
+      const loc = node.loc!;
+
+      functions.push({
+        name: getFunctionName(node),
+        type: getFunctionType(node),
+        startLine: loc.start.line,
+        endLine: loc.end.line,
+        metrics,
+      });
+    }
+  });
+
+  return {
+    fileMetrics: calculateMetricsForNode(ast),
+    functions: functions.sort((a, b) => a.startLine - b.startLine),
+  };
+}
+
+export function calculateMetrics(code: string, filePath: string): CodeMetrics {
+  const analysis = analyzeFile(code, filePath);
+  return analysis.fileMetrics;
+}
+
+export function countLogicalLinesOfCode(ast: TSESTree.Node): number {
   let loc = 0;
   traverseAST(ast, (node) => {
     if (isExecutableNode(node)) {
@@ -83,7 +156,7 @@ export function countLogicalLinesOfCode(ast: TSESTree.Program): number {
   return loc;
 }
 
-export function calculateCyclomaticComplexity(ast: TSESTree.Program): number {
+export function calculateCyclomaticComplexity(ast: TSESTree.Node): number {
   let complexity = 0;
   traverseAST(ast, (node) => {
     switch (node.type) {
@@ -121,7 +194,7 @@ export function calculateCyclomaticComplexity(ast: TSESTree.Program): number {
 }
 
 export function calculateHalsteadMetrics(
-  ast: TSESTree.Program
+  ast: TSESTree.Node
 ): HalsteadMetrics {
   const operators = new Set<string>();
   const operands = new Set<string>();
@@ -202,7 +275,7 @@ export function calculateMaintainabilityIndex(
   return Math.max(0, (mi * 100) / 171);
 }
 
-export function analyzeClassStructure(ast: TSESTree.Program): {
+export function analyzeClassStructure(ast: TSESTree.Node): {
   classCount: number;
   maxInheritanceDepth: number;
 } {
@@ -230,7 +303,7 @@ export function analyzeClassStructure(ast: TSESTree.Program): {
   return { classCount, maxInheritanceDepth };
 }
 
-export function analyzeFunctionStructure(ast: TSESTree.Program): {
+export function analyzeFunctionStructure(ast: TSESTree.Node): {
   functionCount: number;
 } {
   let functionCount = 0;

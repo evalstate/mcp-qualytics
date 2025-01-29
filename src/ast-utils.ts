@@ -1,10 +1,9 @@
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/typescript-estree";
-import { ASTNode } from "./types";
 
 export function traverseAST(
-  node: ASTNode,
-  enter: (node: ASTNode) => void,
-  leave?: (node: ASTNode) => void
+  node: TSESTree.Node,
+  enter: (node: TSESTree.Node) => void,
+  leave?: (node: TSESTree.Node) => void
 ) {
   enter(node);
 
@@ -28,7 +27,7 @@ export function traverseAST(
   }
 }
 
-export function isASTNode(node: any): node is ASTNode {
+export function isASTNode(node: any): node is TSESTree.Node {
   return node && typeof node === "object" && "type" in node;
 }
 

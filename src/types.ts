@@ -1,5 +1,3 @@
-import { TSESTree } from "@typescript-eslint/typescript-estree";
-
 export interface CodeMetrics {
   linesOfCode: number;
   cyclomaticComplexity: number;
@@ -10,12 +8,19 @@ export interface CodeMetrics {
   averageMethodComplexity: number;
 }
 
-export interface FileMetrics {
-  [filename: string]: CodeMetrics;
-}
-
 export interface HalsteadMetrics {
   volume: number;
 }
 
-export type ASTNode = TSESTree.Node;
+export interface FunctionInfo {
+  name: string;
+  type: 'function' | 'method' | 'arrow';
+  startLine: number;
+  endLine: number;
+  metrics: CodeMetrics;
+}
+
+export interface FileAnalysis {
+  fileMetrics: CodeMetrics;
+  functions: FunctionInfo[];
+}
