@@ -36,7 +36,8 @@
     "estraverse": "^5.3.0",
     "express": "^4.18.2",
     "ignore": "^7.0.3",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "zod-to-json-schema": "^3.22.3"
   },
   "devDependencies": {
     "@types/estraverse": "^5.1.7",
