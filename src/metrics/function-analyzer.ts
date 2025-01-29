@@ -46,9 +46,33 @@ class FunctionAnalyzer implements MetricsCalculator<TSESTree.Node> {
 
   analyzeFunctions(ast: TSESTree.Node): FunctionAnalysis[] {
     const functions: FunctionAnalysis[] = [];
+    const processedNodes = new Set<TSESTree.Node>();
 
     const processFunction = (node: TSESTree.Node) => {
-      if (isFunctionLike(node) && node.loc) {
+      if (!node.loc || processedNodes.has(node)) {
+        return;
+      }
+
+      // For method definitions, we want to analyze the function value
+      if (node.type === AST_NODE_TYPES.MethodDefinition) {
+        const methodNode = node as TSESTree.MethodDefinition;
+        processedNodes.add(methodNode);
+        processedNodes.add(methodNode.value);
+        
+        const analysis: FunctionAnalysis = {
+          name: this.getFunctionName(methodNode),
+          type: 'method',
+          startLine: methodNode.loc.start.line,
+          endLine: methodNode.loc.end.line,
+          metrics: this.calculate(methodNode.value),
+        };
+        functions.push(analysis);
+        return;
+      }
+
+      // Handle other function-like nodes
+      if (isFunctionLike(node)) {
+        processedNodes.add(node);
         const analysis: FunctionAnalysis = {
           name: this.getFunctionName(node),
           type: this.getFunctionType(node),
@@ -56,60 +80,62 @@ class FunctionAnalyzer implements MetricsCalculator<TSESTree.Node> {
           endLine: node.loc.end.line,
           metrics: this.calculate(node),
         };
-
         functions.push(analysis);
       }
     };
 
-    this.traverseFunctions(ast, processFunction);
+    this.traverseAST(ast, processFunction);
     return functions.sort((a, b) => a.startLine - b.startLine);
   }
 
-  private traverseFunctions(ast: TSESTree.Node, callback: (node: TSESTree.Node) => void): void {
-    const visit = (node: TSESTree.Node) => {
-      if (node.type === AST_NODE_TYPES.MethodDefinition) {
-        callback((node as TSESTree.MethodDefinition).value);
-      } else {
-        callback(node);
-      }
+  private traverseAST(node: TSESTree.Node, callback: (node: TSESTree.Node) => void): void {
+    callback(node);
 
-      for (const key in node) {
-        const child = (node as any)[key];
-        if (child && typeof child === 'object') {
-          if (Array.isArray(child)) {
-            child.forEach(item => {
-              if (item && typeof item === 'object' && 'type' in item) {
-                visit(item as TSESTree.Node);
-              }
-            });
-          } else if ('type' in child) {
-            visit(child as TSESTree.Node);
-          }
+    for (const key in node) {
+      const child = (node as any)[key];
+      if (child && typeof child === 'object') {
+        if (Array.isArray(child)) {
+          child.forEach(item => {
+            if (item && typeof item === 'object' && 'type' in item) {
+              this.traverseAST(item as TSESTree.Node, callback);
+            }
+          });
+        } else if ('type' in child) {
+          this.traverseAST(child as TSESTree.Node, callback);
         }
       }
-    };
-
-    visit(ast);
+    }
   }
 
   private getFunctionName(node: TSESTree.Node): string {
     switch (node.type) {
       case AST_NODE_TYPES.FunctionDeclaration:
         return (node as TSESTree.FunctionDeclaration).id?.name || '<anonymous>';
+      
       case AST_NODE_TYPES.MethodDefinition:
         const methodNode = node as TSESTree.MethodDefinition;
         return methodNode.key.type === AST_NODE_TYPES.Identifier 
           ? methodNode.key.name 
           : '<computed>';
+      
       case AST_NODE_TYPES.ArrowFunctionExpression:
       case AST_NODE_TYPES.FunctionExpression:
+        // Check for variable declaration parent
         if (node.parent?.type === AST_NODE_TYPES.VariableDeclarator && 
             (node.parent as TSESTree.VariableDeclarator).id.type === AST_NODE_TYPES.Identifier) {
           return ((node.parent as TSESTree.VariableDeclarator).id as TSESTree.Identifier).name;
         }
+        // Check for method definition parent
+        if (node.parent?.type === AST_NODE_TYPES.MethodDefinition) {
+          const methodParent = node.parent as TSESTree.MethodDefinition;
+          return methodParent.key.type === AST_NODE_TYPES.Identifier
+            ? methodParent.key.name
+            : '<computed>';
+        }
         return node.type === AST_NODE_TYPES.ArrowFunctionExpression 
           ? '<arrow>' 
           : '<anonymous>';
+      
       default:
         return '<unknown>';
     }
@@ -155,7 +181,7 @@ class FunctionAnalyzer implements MetricsCalculator<TSESTree.Node> {
 
   private countLogicalLinesOfCode(node: TSESTree.Node): number {
     let loc = 0;
-    this.traverseFunctions(node, (n) => {
+    this.traverseAST(node, (n) => {
       if (this.isExecutableNode(n)) {
         loc++;
       }
