@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist-test-utils",
+    "rootDir": "./test-utils",
+    "tsBuildInfoFile": "./dist-test-utils/.tsbuildinfo",
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  },
+  "include": ["test-utils/**/*"],
+  "exclude": ["node_modules", "dist", "dist-test-utils", "src"],
+  "references": [
+    { "path": "." }
+  ]
+}

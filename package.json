@@ -24,14 +24,15 @@
   },
   "homepage": "https://github.com/evalstate/mcp-qualytics#readme",
   "scripts": {
-    "prebuild": "npm test",
-    "build": "tsc -p ./",
+    "build:main": "tsc -b",
+    "build:test-utils": "tsc -b tsconfig.test-utils.json",
+    "build": "npm run build:main && npm run build:test-utils",
     "watch": "tsc -watch -p ./",
     "start": "node ./dist/server.js",
     "prepublishOnly": "npm run build",
-    "postbuild": "node -e \"process.platform !== 'win32' && require('child_process').execSync('chmod +x dist/server.js')\"",
-    "test:generate": "node --loader ts-node/esm test/golden-master.ts generate",
-    "test:verify": "node --loader ts-node/esm test/golden-master.ts verify",
+    "postbuild": "node -e \"const fs=require('fs'); fs.existsSync('dist/server.js') && process.platform !== 'win32' && require('child_process').execSync('chmod +x dist/server.js')\"",
+    "test:generate": "npm run build && node ./dist-test-utils/golden-master.js generate",
+    "test:verify": "npm run build && node ./dist-test-utils/golden-master.js verify", 
     "test": "npm run test:verify"
   },
   "dependencies": {

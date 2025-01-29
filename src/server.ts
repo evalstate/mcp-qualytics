@@ -48,7 +48,15 @@ export const createServer = () => {
         description: `Performs a detailed code quality analysis of TypeScript code provided as text.
 
 Analysis includes:
-- File-level metrics: LOC, cyclomatic complexity, maintainability index
+- File-level metrics:
+  * Lines of Code (LOC): Count of logical code lines including:
+    - Declarations (variables, functions, classes, interfaces)
+    - Executable statements
+    - Import/export statements
+    - Parameter properties in constructors
+    (excluding comments, empty lines, and standalone braces)
+  * Cyclomatic complexity
+  * Maintainability index
 - Function-level analysis: complexity, maintainability per function
 - Class analysis: inheritance depth, method counts
 - Detailed metrics for each function and method
@@ -60,7 +68,9 @@ The maintainability index is on a scale of 0-100, where:
 - 61-80: Highly maintainable 
 - 81-100: Extremely maintainable
 
-Output can be formatted as human-readable text or as a markdown table for better visualization.`,
+Output can be formatted as human-readable text or as a markdown table for better visualization.
+
+Can analyze both complete TypeScript files and individual functions/methods.`,
         inputSchema: convertSchema(TypescriptAnalyzeTextSchema),
       },
       {
@@ -68,7 +78,15 @@ Output can be formatted as human-readable text or as a markdown table for better
         description: `Performs a detailed code quality analysis of a single TypeScript file.
 
 Analysis includes:
-- File-level metrics: LOC, cyclomatic complexity, maintainability index
+- File-level metrics:
+  * Lines of Code (LOC): Count of logical code lines including:
+    - Declarations (variables, functions, classes, interfaces)
+    - Executable statements
+    - Import/export statements
+    - Parameter properties in constructors
+    (excluding comments, empty lines, and standalone braces)
+  * Cyclomatic complexity
+  * Maintainability index
 - Function-level analysis: complexity, maintainability per function
 - Class analysis: inheritance depth, method counts
 - Detailed metrics for each function and method
@@ -88,7 +106,15 @@ Output can be formatted as human-readable text or as a markdown table for better
         description: `Recursively analyzes all TypeScript files in a directory to identify code quality patterns and potential issues.
 
 Provides a comprehensive overview of:
-- Code quality metrics for each file
+- Code quality metrics for each file:
+  * Lines of Code (LOC): Count of logical code lines including:
+    - Declarations (variables, functions, classes, interfaces)
+    - Executable statements
+    - Import/export statements
+    - Parameter properties in constructors
+    (excluding comments, empty lines, and standalone braces)
+  * Cyclomatic complexity
+  * Maintainability index
 - Function-level analysis (optional)
 - Project-wide patterns and potential issues
 - Relative complexity between files
