@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -28,7 +29,7 @@ function convertSchema(schema: any): ToolInput {
   } as ToolInput;
 }
 
-export const createServer = () => {
+export async function createServer() {
   const server = new Server(
     {
       name: "mcp-qualytics",
@@ -153,51 +154,51 @@ Files are filtered based on:
     return handler(args);
   });
 
-  const cleanup = async () => {
-    // No cleanup needed currently
-  };
+  return server;
+}
 
-  return { server, cleanup };
-};
+let shuttingDown = false;
+const cleanupHandlers = new Set<() => Promise<void>>();
 
-// Start the server if run directly
-if (process.argv[1] === import.meta.url.substring(7)) {
-  async function main() {
-    const transport = new StdioServerTransport();
-    const { server, cleanup } = createServer();
-    
-    async function handleShutdown(reason: string = 'unknown') {
-      console.error(`Initiating shutdown (reason: ${reason})`);
-      try {
-        await cleanup();
-        await transport.close();
-        process.exit(0);
-      } catch (error) {
-        console.error('Error during shutdown:', error);
-        process.exit(1);
-      }
-    }
-    
-    transport.onclose = () => {
-      handleShutdown('transport closed');
-    };
-    
-    process.stdin.on('end', () => handleShutdown('stdin ended'));
-    process.stdin.on('close', () => handleShutdown('stdin closed'));
-    process.stdout.on('error', () => handleShutdown('stdout error'));
-    process.stdout.on('close', () => handleShutdown('stdout closed'));
-    
-    try {
-      await server.connect(transport);
-      console.error('Server connected');
-    } catch (error) {
-      console.error('Failed to connect server:', error);
-      handleShutdown('connection failed');
-    }
-  }
-  
-  main().catch((error) => {
-    console.error("Fatal error in main():", error);
-    process.exit(1);
+export async function startup() {
+  // Setup error handlers
+  process.on("uncaughtException", shutdown);
+  process.on("unhandledRejection", shutdown);
+  process.on("SIGINT", () => shutdown("SIGINT"));
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("exit", () => shutdown("exit"));
+
+  // Create and start server
+  const transport = new StdioServerTransport();
+  const server = await createServer();
+
+  // Register cleanup handler
+  cleanupHandlers.add(async () => {
+    await transport.close();
   });
+
+  // Connect server
+  try {
+    await server.connect(transport);
+    console.error("Server started successfully");
+  } catch (error) {
+    console.error("Failed to start server:", error);
+    await shutdown("startup failed");
+  }
+}
+
+export async function shutdown(reason = "unknown") {
+  if (shuttingDown) return;
+  shuttingDown = true;
+
+  console.error(`Shutting down (reason: ${reason})`);
+
+  try {
+    await Promise.all(Array.from(cleanupHandlers).map((h) => h()));
+  } catch (error) {
+    console.error("Error during shutdown:", error);
+    process.exit(1);
+  }
+
+  process.exit(0);
 }
