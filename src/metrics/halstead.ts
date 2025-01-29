@@ -18,41 +18,41 @@ type OperatorNode =
   | TSESTree.UnaryExpression;
 
 class HalsteadMetricsCalculator implements MetricsProcessor {
-  private readonly operatorMatchers: NodeMatcher<void>[] = [
+  private readonly operatorMatchers: Array<NodeMatcher<void>> = [
     {
       type: AST_NODE_TYPES.BinaryExpression,
-      process: this.processOperator.bind(this)
+      process: (node: TSESTree.Node) => this.processOperator(node as OperatorNode)
     },
     {
       type: AST_NODE_TYPES.LogicalExpression,
-      process: this.processOperator.bind(this)
+      process: (node: TSESTree.Node) => this.processOperator(node as OperatorNode)
     },
     {
       type: AST_NODE_TYPES.AssignmentExpression,
-      process: this.processOperator.bind(this)
+      process: (node: TSESTree.Node) => this.processOperator(node as OperatorNode)
     },
     {
       type: AST_NODE_TYPES.UpdateExpression,
-      process: this.processOperator.bind(this)
+      process: (node: TSESTree.Node) => this.processOperator(node as OperatorNode)
     },
     {
       type: AST_NODE_TYPES.UnaryExpression,
-      process: this.processOperator.bind(this)
+      process: (node: TSESTree.Node) => this.processOperator(node as OperatorNode)
     }
   ];
 
-  private readonly operandMatchers: NodeMatcher<void>[] = [
+  private readonly operandMatchers: Array<NodeMatcher<void>> = [
     {
       type: AST_NODE_TYPES.Identifier,
-      process: this.processIdentifier.bind(this)
+      process: (node: TSESTree.Node) => this.processIdentifier(node as TSESTree.Identifier)
     },
     {
       type: AST_NODE_TYPES.Literal,
-      process: this.processLiteral.bind(this)
+      process: (node: TSESTree.Node) => this.processLiteral(node as TSESTree.Literal)
     },
     {
       type: AST_NODE_TYPES.MemberExpression,
-      process: this.processMemberExpression.bind(this)
+      process: (node: TSESTree.Node) => this.processMemberExpression(node as TSESTree.MemberExpression)
     }
   ];
 
@@ -100,24 +100,24 @@ class HalsteadMetricsCalculator implements MetricsProcessor {
     this.data.operatorCount++;
   }
 
-  private processIdentifier(node: TypedNode<AST_NODE_TYPES.Identifier>): void {
+  private processIdentifier(node: TSESTree.Identifier): void {
     this.data.operands.add(node.name);
     this.data.operandCount++;
   }
 
-  private processLiteral(node: TypedNode<AST_NODE_TYPES.Literal>): void {
+  private processLiteral(node: TSESTree.Literal): void {
     this.data.operands.add(String(node.value));
     this.data.operandCount++;
   }
 
-  private processMemberExpression(node: TypedNode<AST_NODE_TYPES.MemberExpression>): void {
+  private processMemberExpression(node: TSESTree.MemberExpression): void {
     if (node.property.type === AST_NODE_TYPES.Identifier) {
-      this.data.operands.add(node.property.name);
+      this.data.operands.add((node.property as TSESTree.Identifier).name);
       this.data.operandCount++;
     }
   }
 
-  private processCallExpression(node: TypedNode<AST_NODE_TYPES.CallExpression>): void {
+  private processCallExpression(node: TSESTree.CallExpression): void {
     if (node.callee.type === AST_NODE_TYPES.Identifier) {
       this.data.operators.add(`${node.callee.name}()`);
       this.data.operatorCount++;

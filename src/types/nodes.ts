@@ -16,17 +16,17 @@ export interface NodeMatcher<T> {
 
 export type TypedNode<T extends NodeType> = Extract<TSESTree.Node, { type: T }>;
 
-export interface AnalyzableNode {
-  type: NodeType;
-  loc?: TSESTree.SourceLocation;
-}
-
-export interface FunctionLike extends AnalyzableNode {
+// Use type intersection instead of interface extension
+export type FunctionLike = TSESTree.Node & {
   id?: TSESTree.Identifier;
   body: TSESTree.BlockStatement;
-}
+  params: TSESTree.Parameter[];
+  async: boolean;
+  generator: boolean;
+  expression: boolean;
+};
 
-export const isFunctionLike = (node: TSESTree.Node): node is FunctionLike => {
+export const isFunctionLike = (node: TSESTree.Node): node is TSESTree.FunctionLike => {
   return [
     AST_NODE_TYPES.FunctionDeclaration,
     AST_NODE_TYPES.FunctionExpression,

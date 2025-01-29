@@ -1,5 +1,5 @@
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/typescript-estree";
-import { FunctionLike, isFunctionLike, TypedNode } from "../types/nodes";
+import { isFunctionLike } from "../types/nodes";
 import { MetricsCalculator, MetricsResult } from "../types/metrics";
 import { halsteadMetricsCalculator } from "./halstead";
 import { cyclomaticComplexityCalculator } from "./complexity";
@@ -15,8 +15,8 @@ interface FunctionAnalysis {
   metrics: MetricsResult;
 }
 
-class FunctionAnalyzer implements MetricsCalculator<FunctionLike> {
-  calculate(node: FunctionLike): MetricsResult {
+class FunctionAnalyzer implements MetricsCalculator<TSESTree.Node> {
+  calculate(node: TSESTree.Node): MetricsResult {
     const halsteadVolume = halsteadMetricsCalculator.process(node);
     const complexity = cyclomaticComplexityCalculator.process(node);
     const loc = this.countLogicalLinesOfCode(node);
@@ -48,17 +48,17 @@ class FunctionAnalyzer implements MetricsCalculator<FunctionLike> {
     const functions: FunctionAnalysis[] = [];
 
     const processFunction = (node: TSESTree.Node) => {
-      if (!isFunctionLike(node) || !node.loc) return;
+      if (isFunctionLike(node) && node.loc) {
+        const analysis: FunctionAnalysis = {
+          name: this.getFunctionName(node),
+          type: this.getFunctionType(node),
+          startLine: node.loc.start.line,
+          endLine: node.loc.end.line,
+          metrics: this.calculate(node),
+        };
 
-      const analysis: FunctionAnalysis = {
-        name: this.getFunctionName(node),
-        type: this.getFunctionType(node),
-        startLine: node.loc.start.line,
-        endLine: node.loc.end.line,
-        metrics: this.calculate(node),
-      };
-
-      functions.push(analysis);
+        functions.push(analysis);
+      }
     };
 
     this.traverseFunctions(ast, processFunction);
@@ -68,7 +68,7 @@ class FunctionAnalyzer implements MetricsCalculator<FunctionLike> {
   private traverseFunctions(ast: TSESTree.Node, callback: (node: TSESTree.Node) => void): void {
     const visit = (node: TSESTree.Node) => {
       if (node.type === AST_NODE_TYPES.MethodDefinition) {
-        callback(node.value);
+        callback((node as TSESTree.MethodDefinition).value);
       } else {
         callback(node);
       }
@@ -78,12 +78,12 @@ class FunctionAnalyzer implements MetricsCalculator<FunctionLike> {
         if (child && typeof child === 'object') {
           if (Array.isArray(child)) {
             child.forEach(item => {
-              if (item && typeof item === 'object') {
-                visit(item);
+              if (item && typeof item === 'object' && 'type' in item) {
+                visit(item as TSESTree.Node);
               }
             });
           } else if ('type' in child) {
-            visit(child);
+            visit(child as TSESTree.Node);
           }
         }
       }
@@ -104,8 +104,8 @@ class FunctionAnalyzer implements MetricsCalculator<FunctionLike> {
       case AST_NODE_TYPES.ArrowFunctionExpression:
       case AST_NODE_TYPES.FunctionExpression:
         if (node.parent?.type === AST_NODE_TYPES.VariableDeclarator && 
-            node.parent.id.type === AST_NODE_TYPES.Identifier) {
-          return node.parent.id.name;
+            (node.parent as TSESTree.VariableDeclarator).id.type === AST_NODE_TYPES.Identifier) {
+          return ((node.parent as TSESTree.VariableDeclarator).id as TSESTree.Identifier).name;
         }
         return node.type === AST_NODE_TYPES.ArrowFunctionExpression 
           ? '<arrow>' 
@@ -129,16 +129,6 @@ class FunctionAnalyzer implements MetricsCalculator<FunctionLike> {
     }
   }
 
-  private countLogicalLinesOfCode(node: TSESTree.Node): number {
-    let loc = 0;
-    this.traverseFunctions(node, (n) => {
-      if (this.isExecutableNode(n)) {
-        loc++;
-      }
-    });
-    return loc;
-  }
-
   private isExecutableNode(node: TSESTree.Node): boolean {
     const executableTypes = new Set([
       AST_NODE_TYPES.ExpressionStatement,
@@ -160,7 +150,17 @@ class FunctionAnalyzer implements MetricsCalculator<FunctionLike> {
       AST_NODE_TYPES.VariableDeclaration,
     ]);
 
-    return executableTypes.has(node.type);
+    return executableTypes.has(node.type as AST_NODE_TYPES);
+  }
+
+  private countLogicalLinesOfCode(node: TSESTree.Node): number {
+    let loc = 0;
+    this.traverseFunctions(node, (n) => {
+      if (this.isExecutableNode(n)) {
+        loc++;
+      }
+    });
+    return loc;
   }
 }
 
