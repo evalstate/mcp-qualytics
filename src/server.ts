@@ -9,7 +9,7 @@ import {
 import { promises as fs } from 'fs';
 import path from 'path';
 import ignore from 'ignore';
-import { typescriptAnalyzeFile } from './analysis.js';
+import { analyzeFile as typescriptAnalyzeFile } from './metrics/index.js';
 
 const server = new Server(
   {
