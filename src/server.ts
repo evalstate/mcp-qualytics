@@ -8,7 +8,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { promises as fs } from 'fs';
 import path from 'path';
-import { calculateMetrics, analyzeFile } from './metrics.js';
+import { typescriptAnalyzeFile } from './analysis.js';
 
 const server = new Server(
   {
@@ -126,7 +126,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { filepath, format = 'text' } = request.params.arguments as { filepath: string, format?: 'text' | 'table' };
       try {
         const code = await fs.readFile(filepath, 'utf-8');
-        const analysis = analyzeFile(code, filepath);
+        const analysis = typescriptAnalyzeFile(code, filepath);
         
         if (format === 'table') {
           // Generate table format
@@ -196,7 +196,7 @@ Functions:`;
 
         for (const file of files) {
           const code = await fs.readFile(file, 'utf-8');
-          const analysis = analyzeFile(code, file);
+          const analysis = typescriptAnalyzeFile(code, file);
           const relativePath = path.relative(directory, file);
           
           // Add file-level metrics
