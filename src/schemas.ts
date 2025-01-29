@@ -19,7 +19,7 @@ export const TypescriptAnalyzeFileSchema = z.object({
 
 export const TypescriptAnalyzeDirectorySchema = z.object({
   directory: z.string()
-    .describe("Absolute or relative path to the directory containing TypeScript files. Will recursively search subdirectories, excluding node_modules and hidden directories."),
+    .describe("Absolute or relative path to the directory containing TypeScript files. Will recursively search subdirectories, respecting .gitignore patterns and excluding node_modules and hidden directories."),
   include_functions: z.boolean()
     .default(true)
     .describe("When true, includes detailed metrics for every function/method in each file. Set to false for a more concise file-level overview."),

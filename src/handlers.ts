@@ -48,9 +48,11 @@ export async function handleAnalyzeFile(args: unknown) {
     if (validatedArgs.include_source) {
       content.push({
         type: "resource",
-        uri: validatedArgs.filepath,
-        mimeType: "application/x-typescript",
-        text: code
+        resource: {
+          uri: validatedArgs.filepath,
+          mimeType: "application/x-typescript",
+          text: code
+        }
       });
     }
     
