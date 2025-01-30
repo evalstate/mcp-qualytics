@@ -1,5 +1,5 @@
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/typescript-estree";
-import { MetricsProcessor } from "../types/metrics.js";
+import type { MetricsProcessor } from "../types/metrics.js";
 import { traverseAST } from "../ast-utils.js";
 
 class CyclomaticComplexityCalculator implements MetricsProcessor {

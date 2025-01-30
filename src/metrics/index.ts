@@ -1,5 +1,5 @@
 import { parse, AST_NODE_TYPES, TSESTree } from "@typescript-eslint/typescript-estree";
-import { FileAnalysis, CodeMetrics } from "../types/metrics.js";
+import type { FileAnalysis, CodeMetrics } from "../types/metrics.js";
 import { functionAnalyzer } from "./function-analyzer.js";
 import { halsteadMetricsCalculator } from "./halstead.js";
 import { cyclomaticComplexityCalculator } from "./complexity.js";

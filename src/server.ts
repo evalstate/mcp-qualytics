@@ -4,18 +4,18 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
-  Tool,
   ToolSchema,
 } from "@modelcontextprotocol/sdk/types.js";
+import type { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
 import {
   TypescriptAnalyzeTextSchema,
   TypescriptAnalyzeFileSchema,
   TypescriptAnalyzeDirectorySchema,
-  ToolName
-} from './schemas.js';
-import { handlers } from './handlers.js';
+  ToolName,
+} from "./schemas.js";
+import { handlers } from "./handlers.js";
 
 const ToolInputSchema = ToolSchema.shape.inputSchema;
 type ToolInput = typeof ToolInputSchema._type;
@@ -33,7 +33,7 @@ export async function createServer() {
   const server = new Server(
     {
       name: "mcp-qualytics",
-      version: "0.1.0",
+      version: "0.1.4",
     },
     {
       capabilities: {
@@ -115,14 +115,14 @@ Respects .gitignore and common ignore patterns.`,
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
     const handler = handlers[name as ToolName];
-    
+
     if (!handler) {
       return {
         isError: true,
         content: [{ type: "text", text: `Unknown tool: ${name}` }],
       };
     }
-    
+
     return handler(args);
   });
 

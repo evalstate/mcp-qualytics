@@ -21,6 +21,7 @@
     /* Additional Features */
     "lib": ["ES2023"],
     "tsBuildInfoFile": "./dist/.tsbuildinfo",
+    "verbatimModuleSyntax": true,
 
     /* Project References */
     "composite": true,

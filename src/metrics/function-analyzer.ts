@@ -1,6 +1,6 @@
 import { AST_NODE_TYPES, TSESTree } from "@typescript-eslint/typescript-estree";
 import { isFunctionLike } from "../types/nodes.js";
-import { MetricsCalculator, MetricsResult } from "../types/metrics.js";
+import type { MetricsCalculator, MetricsResult } from "../types/metrics.js";
 import { halsteadMetricsCalculator } from "./halstead.js";
 import { cyclomaticComplexityCalculator } from "./complexity.js";
 import { calculateMaintainabilityIndex } from "./maintainability.js";

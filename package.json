@@ -2,7 +2,7 @@
   "name": "@llmindset/mcp-qualytics",
   "displayName": "MCP Qualytics",
   "description": "A Code Metric Analysis MCP Server (for TypeScript)",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -40,7 +40,7 @@
     "watch": "tsc -watch -p ./",
     "start": "node ./dist/index.js",
     "prepublishOnly": "npm run build",
-    "postbuild": "node -e \"const fs=require('fs'); fs.existsSync('dist/index.js') && process.platform !== 'win32' && require('child_process').execSync('chmod +x dist/index.js')\"",
+    "postbuild": "node -e \"const fs=require('fs'); if (fs.existsSync('dist/index.js') && process.platform !== 'win32') { require('child_process').execSync('chmod +x dist/index.js'); }\"",
     "test:generate": "npm run build && node ./dist-test-utils/golden-master.js generate",
     "test:verify": "npm run build && node ./dist-test-utils/golden-master.js verify", 
     "test": "npm run test:verify"
