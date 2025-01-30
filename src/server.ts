@@ -34,10 +34,13 @@ export async function createServer() {
     {
       name: "mcp-qualytics",
       version: "0.1.4",
+      description: "TypeScript code quality metrics analyzer",
     },
     {
       capabilities: {
-        tools: {},
+        tools: {
+          description: "Analyze TypeScript code quality metrics",
+        },
       },
     }
   );
@@ -123,7 +126,17 @@ Respects .gitignore and common ignore patterns.`,
       };
     }
 
-    return handler(args);
+    try {
+      return await handler(args);
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ 
+          type: "text", 
+          text: `Error executing tool ${name}: ${error instanceof Error ? error.message : String(error)}` 
+        }],
+      };
+    }
   });
 
   return server;
@@ -132,9 +145,19 @@ Respects .gitignore and common ignore patterns.`,
 const cleanupHandlers = new Set<() => Promise<void>>();
 
 export async function startup() {
-  // Create and start server
   const transport = new StdioServerTransport();
   const server = await createServer();
+
+  // Graceful shutdown handler
+  const cleanup = async () => {
+    for (const handler of cleanupHandlers) {
+      await handler();
+    }
+    process.exit(0);
+  };
+
+  process.on('SIGINT', cleanup);
+  process.on('SIGTERM', cleanup);
 
   // Register cleanup handler
   cleanupHandlers.add(async () => {
@@ -146,5 +169,6 @@ export async function startup() {
     await server.connect(transport);
   } catch (error) {
     console.error("Failed to start server:", error);
+    process.exit(1);
   }
 }

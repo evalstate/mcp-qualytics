@@ -14,19 +14,26 @@ import type { MetricsResult } from '../dist/types/metrics.js';
 let functionAnalyzer: { analyzeFunctions(node: any): { name: string, type: string, startLine: number, endLine: number, metrics: MetricsResult }[] };
 
 async function createSnapshot(fixturePath: string): Promise<string> {
-    const code = await fs.readFile(fixturePath, 'utf8');
-    const ast = parse(code, {
-        loc: true,
-        range: true,
-        tokens: true,
-        comment: true,
-        useJSXTextNode: true,
-        jsx: true,
-        errorOnUnknownASTType: true,
-    });
-    
-    const analysis = functionAnalyzer.analyzeFunctions(ast);
-    return JSON.stringify(analysis, null, 2);
+    try {
+        const code = await fs.readFile(fixturePath, 'utf8');
+        console.log(`Parsing file: ${fixturePath}`);
+        const ast = parse(code, {
+            loc: true,
+            range: true,
+            tokens: true,
+            comment: true,
+            useJSXTextNode: true,
+            jsx: true,
+            errorOnUnknownASTType: true,
+        });
+        
+        const analysis = functionAnalyzer.analyzeFunctions(ast);
+        return JSON.stringify(analysis, null, 2);
+    } catch (error) {
+        console.error(`Error processing file ${fixturePath}:`, error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        throw new Error(`Failed to process ${fixturePath}: ${errorMessage}`);
+    }
 }
 
 async function saveSnapshot(fixtureName: string, content: string): Promise<void> {

@@ -1,0 +1,98 @@
+[
+  {
+    "name": "constructor",
+    "type": "method",
+    "startLine": 16,
+    "endLine": 20,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 3,
+        "cyclomaticComplexity": 1,
+        "maintainabilityIndex": 84.71624627594792,
+        "averageMethodComplexity": 1,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 4.754887502163468
+        },
+        "complexity": 1,
+        "lloc": 3
+      }
+    }
+  },
+  {
+    "name": "methodA",
+    "type": "method",
+    "startLine": 37,
+    "endLine": 37,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 0,
+        "cyclomaticComplexity": 1,
+        "maintainabilityIndex": 99.86549707602339,
+        "averageMethodComplexity": 1,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 0
+        },
+        "complexity": 1,
+        "lloc": 0
+      }
+    }
+  },
+  {
+    "name": "methodB",
+    "type": "method",
+    "startLine": 38,
+    "endLine": 38,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 0,
+        "cyclomaticComplexity": 1,
+        "maintainabilityIndex": 99.86549707602339,
+        "averageMethodComplexity": 1,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 0
+        },
+        "complexity": 1,
+        "lloc": 0
+      }
+    }
+  },
+  {
+    "name": "methodC",
+    "type": "method",
+    "startLine": 39,
+    "endLine": 39,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 0,
+        "cyclomaticComplexity": 1,
+        "maintainabilityIndex": 99.86549707602339,
+        "averageMethodComplexity": 1,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 0
+        },
+        "complexity": 1,
+        "lloc": 0
+      }
+    }
+  }
+]

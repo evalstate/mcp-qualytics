@@ -91,15 +91,18 @@ class FileMetricsAnalyzer {
   private calculateInheritanceDepth(ast: TSESTree.Node): number {
     const inheritanceMap = new Map<string, number>();
 
-    const getClassIdentifier = (node: TSESTree.Node): string | undefined => {
-      if (node.type === AST_NODE_TYPES.ClassDeclaration && node.id) {
-        return node.id.name;
-      } else if (node.type === AST_NODE_TYPES.ClassExpression && node.id) {
+    // Get name for class or interface
+    const getTypeIdentifier = (node: TSESTree.Node): string | undefined => {
+      if ((node.type === AST_NODE_TYPES.ClassDeclaration || 
+           node.type === AST_NODE_TYPES.ClassExpression || 
+           node.type === AST_NODE_TYPES.TSInterfaceDeclaration) && 
+          node.id) {
         return node.id.name;
       }
       return undefined;
     };
 
+    // Get superclass for classes
     const getSuperclassIdentifier = (node: TSESTree.Node): string | undefined => {
       if ((node.type === AST_NODE_TYPES.ClassDeclaration || 
            node.type === AST_NODE_TYPES.ClassExpression) && 
@@ -110,36 +113,77 @@ class FileMetricsAnalyzer {
       return undefined;
     };
 
-    // First pass: collect all class names and their direct superclasses
+    // Get extended interfaces
+    const getExtendedInterfaces = (node: TSESTree.Node): string[] => {
+      if (node.type === AST_NODE_TYPES.TSInterfaceDeclaration && node.extends) {
+        return node.extends
+          .map(ext => ext.expression)
+          .filter((exp): exp is TSESTree.Identifier => exp.type === AST_NODE_TYPES.Identifier)
+          .map(id => id.name);
+      }
+      return [];
+    };
+
+    // Get implemented interfaces for classes
+    const getImplementedInterfaces = (node: TSESTree.Node): string[] => {
+      if ((node.type === AST_NODE_TYPES.ClassDeclaration || 
+           node.type === AST_NODE_TYPES.ClassExpression) && 
+          node.implements) {
+        return node.implements
+          .map(impl => impl.expression)
+          .filter((exp): exp is TSESTree.Identifier => exp.type === AST_NODE_TYPES.Identifier)
+          .map(id => id.name);
+      }
+      return [];
+    };
+
+    // First pass: collect all type names and their inheritance relationships
     const inheritanceEdges: [string, string][] = [];
+    
     this.traverse(ast, node => {
-      const className = getClassIdentifier(node);
-      const superClassName = getSuperclassIdentifier(node);
+      const typeName = getTypeIdentifier(node);
       
-      if (className) {
-        inheritanceMap.set(className, 1); // Initialize all classes with depth 1
-        if (superClassName) {
-          inheritanceEdges.push([className, superClassName]);
-        }
+      if (!typeName) return;
+
+      // Initialize base depth
+      inheritanceMap.set(typeName, 1);
+
+      // Add class inheritance edges
+      const superClassName = getSuperclassIdentifier(node);
+      if (superClassName) {
+        inheritanceEdges.push([typeName, superClassName]);
+      }
+
+      // Add interface extension edges
+      const extendedInterfaces = getExtendedInterfaces(node);
+      for (const interfaceName of extendedInterfaces) {
+        inheritanceEdges.push([typeName, interfaceName]);
+      }
+
+      // Add interface implementation edges
+      const implementedInterfaces = getImplementedInterfaces(node);
+      for (const interfaceName of implementedInterfaces) {
+        inheritanceEdges.push([typeName, interfaceName]);
       }
     });
 
-    // Second pass: calculate inheritance depths
+    // Second pass: calculate inheritance depths using fixed-point iteration
     let changed: boolean;
     do {
       changed = false;
-      for (const [className, superClassName] of inheritanceEdges) {
-        const superClassDepth = inheritanceMap.get(superClassName) || 1;
-        const currentDepth = inheritanceMap.get(className) || 1;
-        const newDepth = superClassDepth + 1;
+      for (const [childName, parentName] of inheritanceEdges) {
+        const parentDepth = inheritanceMap.get(parentName) || 1;
+        const currentDepth = inheritanceMap.get(childName) || 1;
+        const newDepth = parentDepth + 1;
         
         if (newDepth > currentDepth) {
-          inheritanceMap.set(className, newDepth);
+          inheritanceMap.set(childName, newDepth);
           changed = true;
         }
       }
     } while (changed);
 
+    // Return maximum depth found
     return inheritanceMap.size > 0 ? Math.max(...inheritanceMap.values()) : 0;
   }
 
