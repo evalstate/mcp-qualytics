@@ -184,6 +184,7 @@ export class FunctionAnalyzer implements MetricsCalculator<TSESTree.Node> {
       AST_NODE_TYPES.YieldExpression,
       AST_NODE_TYPES.AwaitExpression,
       AST_NODE_TYPES.SpreadElement,
+      AST_NODE_TYPES.ArrayExpression,
       
       // Declarations
       AST_NODE_TYPES.VariableDeclaration,
@@ -222,7 +223,7 @@ export class FunctionAnalyzer implements MetricsCalculator<TSESTree.Node> {
       if (this.isExecutableLine(n)) {
         loc++;
 
-        // Additional lines for specific node types
+        // Special cases that need additional counting
         switch (n.type) {
           case AST_NODE_TYPES.VariableDeclaration:
             // Count each declarator in a declaration
@@ -236,41 +237,6 @@ export class FunctionAnalyzer implements MetricsCalculator<TSESTree.Node> {
               const params = (methodNode.value as TSESTree.FunctionExpression).params;
               const paramProps = params.filter(p => p.type === AST_NODE_TYPES.TSParameterProperty);
               loc += paramProps.length;
-            }
-            break;
-
-          case AST_NODE_TYPES.ClassDeclaration:
-          case AST_NODE_TYPES.ClassExpression:
-            // Count each class member
-            const classNode = n as TSESTree.ClassDeclaration | TSESTree.ClassExpression;
-            loc += classNode.body.body.length;
-            break;
-
-          case AST_NODE_TYPES.ObjectExpression:
-            // Count each object property
-            const objNode = n as TSESTree.ObjectExpression;
-            loc += objNode.properties.length;
-            break;
-
-          case AST_NODE_TYPES.ArrayExpression:
-            // Count array elements if they're on separate lines
-            const arrayNode = n as TSESTree.ArrayExpression;
-            if (arrayNode.elements.length > 0) {
-              const uniqueLines = new Set(
-                arrayNode.elements
-                  .filter(el => el?.loc)
-                  .map(el => el!.loc!.start.line)
-              );
-              loc += uniqueLines.size - 1; // -1 because we already counted the array declaration
-            }
-            break;
-
-          case AST_NODE_TYPES.ReturnStatement:
-            // Count complex return statements
-            const returnNode = n as TSESTree.ReturnStatement;
-            if (returnNode.argument?.type === AST_NODE_TYPES.ObjectExpression) {
-              const objNode = returnNode.argument as TSESTree.ObjectExpression;
-              loc += objNode.properties.length;
             }
             break;
         }
