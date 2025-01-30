@@ -1,6 +1,29 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import ignore from 'ignore';
+import createIgnore from 'ignore';
+import type { AnalysisResult, ColumnConfig, FileMetrics, FunctionMetric } from './types.js';
+
+const DEFAULT_FILE_COLUMNS: ColumnConfig[] = [
+  { header: 'Scope', key: 'scope' },
+  { header: 'Name', key: 'name' },
+  { header: 'Type', key: 'type' },
+  { header: 'Lines', key: 'lines' },
+  { header: 'LOC', key: 'linesOfCode' },
+  { header: 'Complexity', key: 'cyclomaticComplexity' },
+  { 
+    header: 'Maintainability', 
+    key: 'maintainabilityIndex', 
+    formatter: (value: unknown) => typeof value === 'number' ? value.toFixed(2) : String(value)
+  },
+  { header: 'Classes', key: 'classCount' },
+  { header: 'Methods', key: 'methodCount' },
+  { 
+    header: 'Avg Complexity', 
+    key: 'averageMethodComplexity', 
+    formatter: (value: unknown) => typeof value === 'number' ? value.toFixed(2) : String(value)
+  },
+  { header: 'Inheritance Depth', key: 'depthOfInheritance' }
+];
 
 /**
  * Recursively finds TypeScript files in a directory while respecting ignore patterns
@@ -9,7 +32,7 @@ export async function findTypeScriptFiles(dir: string, additionalIgnorePatterns:
   const files: string[] = [];
   
   // Initialize ignore instance
-  const ig = ignore();
+  const ig = createIgnore();
   
   // Try to load .gitignore if it exists
   try {
@@ -52,52 +75,61 @@ export async function findTypeScriptFiles(dir: string, additionalIgnorePatterns:
   return files;
 }
 
-/**
- * Formats analysis results as a markdown table
- */
-export function formatAnalysisTable(analysis: any, filename?: string) {
-  let tableRows = [
-    '| Scope | Name | Type | Lines | LOC | Complexity | Maintainability | Classes | Methods | Avg Complexity | Inheritance Depth |',
-    '|--------|------|------|-------|-----|------------|----------------|----------|----------|----------------|------------------|',
-    // File level metrics
-    `| file | ${filename || 'input'} | - | - | ${analysis.fileMetrics.linesOfCode} | ${analysis.fileMetrics.cyclomaticComplexity} | ${analysis.fileMetrics.maintainabilityIndex.toFixed(2)} | ${analysis.fileMetrics.classCount} | ${analysis.fileMetrics.methodCount} | ${analysis.fileMetrics.averageMethodComplexity.toFixed(2)} | ${analysis.fileMetrics.depthOfInheritance} |`
-  ];
-  
-  // Function level metrics
-  for (const fn of analysis.functions) {
-    tableRows.push(
-      `| function | ${fn.name} | ${fn.type} | ${fn.startLine}-${fn.endLine} | ${fn.metrics.linesOfCode} | ${fn.metrics.cyclomaticComplexity} | ${fn.metrics.maintainabilityIndex.toFixed(2)} | - | ${fn.metrics.methodCount} | ${fn.metrics.averageMethodComplexity.toFixed(2)} | - |`
-    );
-  }
-  
-  return tableRows.join('\n');
+function formatTableRow(data: Record<string, unknown>, columns: ColumnConfig[]): string {
+  return '| ' + columns.map(col => {
+    const value = data[col.key];
+    if (value === undefined || value === null) return '-';
+    return col.formatter ? col.formatter(value) : String(value);
+  }).join(' | ') + ' |';
+}
+
+function formatTableHeaders(columns: ColumnConfig[]): string[] {
+  const headers = '| ' + columns.map(col => col.header).join(' | ') + ' |';
+  const separator = '|' + columns.map(() => '--------').join('|') + '|';
+  return [headers, separator];
 }
 
 /**
- * Formats analysis results as human-readable text
+ * Creates structured data for file metrics
  */
-export function formatAnalysisText(analysis: any, filename?: string) {
-  const fileText = `${filename ? `File: ${filename}\n` : ''}Metrics:
-- Lines of Code: ${analysis.fileMetrics.linesOfCode}
-- Cyclomatic Complexity: ${analysis.fileMetrics.cyclomaticComplexity}
-- Maintainability Index: ${analysis.fileMetrics.maintainabilityIndex.toFixed(2)}
-- Class Count: ${analysis.fileMetrics.classCount}
-- Method Count: ${analysis.fileMetrics.methodCount}
-- Average Method Complexity: ${analysis.fileMetrics.averageMethodComplexity.toFixed(2)}
-- Depth of Inheritance: ${analysis.fileMetrics.depthOfInheritance}
+function createFileMetricsData(metrics: FileMetrics, filename: string): Record<string, unknown> {
+  return {
+    scope: 'file',
+    name: filename || 'input',
+    type: '-',
+    lines: '-',
+    ...metrics
+  };
+}
 
-Functions:`;
+/**
+ * Creates structured data for function metrics
+ */
+function createFunctionMetricsData(fn: FunctionMetric): Record<string, unknown> {
+  return {
+    scope: 'function',
+    name: fn.name,
+    type: fn.type,
+    lines: `${fn.startLine}-${fn.endLine}`,
+    ...fn.metrics,
+    classCount: '-',
+    depthOfInheritance: '-'
+  };
+}
 
-  const functionsText = analysis.functions
-    .map((fn: any) => `
-  ${fn.name} (${fn.type})
-  Lines: ${fn.startLine}-${fn.endLine}
-  - Lines of Code: ${fn.metrics.linesOfCode}
-  - Cyclomatic Complexity: ${fn.metrics.cyclomaticComplexity}
-  - Maintainability Index: ${fn.metrics.maintainabilityIndex.toFixed(2)}
-  - Methods: ${fn.metrics.methodCount}
-  - Average Method Complexity: ${fn.metrics.averageMethodComplexity.toFixed(2)}`
-    ).join('\n');
+/**
+ * Formats analysis results as a markdown table
+ */
+export function formatAnalysisTable(analysis: AnalysisResult, filename?: string): string {
+  const rows = [
+    ...formatTableHeaders(DEFAULT_FILE_COLUMNS),
+    formatTableRow(createFileMetricsData(analysis.fileMetrics, filename || 'input'), DEFAULT_FILE_COLUMNS)
+  ];
 
-  return `${fileText}${functionsText}`;
+  // Function level metrics
+  for (const fn of analysis.functions) {
+    rows.push(formatTableRow(createFunctionMetricsData(fn), DEFAULT_FILE_COLUMNS));
+  }
+  
+  return rows.join('\n');
 }

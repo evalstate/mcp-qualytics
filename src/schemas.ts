@@ -2,16 +2,16 @@ import { z } from "zod";
 
 export const TypescriptAnalyzeTextSchema = z.object({
   code: z.string().describe("TypeScript code to analyze"),
-  format: z.enum(["text", "table"])
-    .default("text")
-    .describe("Output format: 'text' for detailed readable output with descriptions, or 'table' for a concise markdown table format")
+  format: z.enum(["json", "table"])
+    .default("json")
+    .describe("Output format: 'json' for raw analysis data, or 'table' for a concise markdown table format")
 });
 
 export const TypescriptAnalyzeFileSchema = z.object({
   filepath: z.string().describe("Absolute or relative path to the TypeScript file to analyze"),
-  format: z.enum(["text", "table"])
-    .default("text")
-    .describe("Output format: 'text' for detailed readable output with descriptions, or 'table' for a concise markdown table format"),
+  format: z.enum(["json", "table"])
+    .default("json")
+    .describe("Output format: 'json' for raw analysis data, or 'table' for a concise markdown table format"),
   include_source: z.boolean()
     .default(false)
     .describe("When true, includes the source file as an embedded resource")
@@ -19,7 +19,10 @@ export const TypescriptAnalyzeFileSchema = z.object({
 
 export const TypescriptAnalyzeDirectorySchema = z.object({
   directory: z.string()
-    .describe("Absolute or relative path to the directory containing TypeScript files. Will recursively search subdirectories, respecting .gitignore patterns and excluding node_modules and hidden directories."),
+    .describe("Absolute or relative path to the directory containing TypeScript files. Will recursively search subdirectories, excluding node_modules and hidden directories."),
+  format: z.enum(["json", "table"])
+    .default("json")
+    .describe("Output format: 'json' for raw analysis data, or 'table' for a concise markdown table format"),
   include_functions: z.boolean()
     .default(true)
     .describe("When true, includes detailed metrics for every function/method in each file. Set to false for a more concise file-level overview."),
