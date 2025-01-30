@@ -6,9 +6,9 @@
     "endLine": 2,
     "metrics": {
       "metrics": {
-        "linesOfCode": 2,
+        "linesOfCode": 1,
         "cyclomaticComplexity": 1,
-        "maintainabilityIndex": 93.29883957598182,
+        "maintainabilityIndex": 99.86549707602339,
         "averageMethodComplexity": 1,
         "methodCount": 1,
         "classCount": 0,
@@ -19,7 +19,7 @@
           "volume": 0
         },
         "complexity": 1,
-        "loc": 2
+        "loc": 1
       }
     }
   },
@@ -30,9 +30,9 @@
     "endLine": 6,
     "metrics": {
       "metrics": {
-        "linesOfCode": 3,
+        "linesOfCode": 2,
         "cyclomaticComplexity": 1,
-        "maintainabilityIndex": 83.84142359948639,
+        "maintainabilityIndex": 87.68267199209005,
         "averageMethodComplexity": 1,
         "methodCount": 1,
         "classCount": 0,
@@ -43,7 +43,7 @@
           "volume": 6.339850002884624
         },
         "complexity": 1,
-        "loc": 3
+        "loc": 2
       }
     }
   },
@@ -54,9 +54,9 @@
     "endLine": 20,
     "metrics": {
       "metrics": {
-        "linesOfCode": 13,
+        "linesOfCode": 18,
         "cyclomaticComplexity": 4,
-        "maintainabilityIndex": 60.741016571979834,
+        "maintainabilityIndex": 57.658067515230734,
         "averageMethodComplexity": 4,
         "methodCount": 1,
         "classCount": 0,
@@ -67,7 +67,7 @@
           "volume": 114.71363126237385
         },
         "complexity": 4,
-        "loc": 13
+        "loc": 18
       }
     }
   },
@@ -78,9 +78,9 @@
     "endLine": 27,
     "metrics": {
       "metrics": {
-        "linesOfCode": 8,
+        "linesOfCode": 5,
         "cyclomaticComplexity": 1,
-        "maintainabilityIndex": 71.28039873995665,
+        "maintainabilityIndex": 75.73306470123204,
         "averageMethodComplexity": 1,
         "methodCount": 1,
         "classCount": 0,
@@ -91,7 +91,7 @@
           "volume": 18.575424759098897
         },
         "complexity": 1,
-        "loc": 8
+        "loc": 5
       }
     }
   },
@@ -102,9 +102,9 @@
     "endLine": 25,
     "metrics": {
       "metrics": {
-        "linesOfCode": 3,
+        "linesOfCode": 2,
         "cyclomaticComplexity": 1,
-        "maintainabilityIndex": 83.1628584142034,
+        "maintainabilityIndex": 87.00410680680706,
         "averageMethodComplexity": 1,
         "methodCount": 1,
         "classCount": 0,
@@ -115,7 +115,7 @@
           "volume": 7.92481250360578
         },
         "complexity": 1,
-        "loc": 3
+        "loc": 2
       }
     }
   }

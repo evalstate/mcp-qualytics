@@ -63,11 +63,11 @@ Analysis includes:
 - Detailed metrics for each function and method
 
 The maintainability index is on a scale of 0-100, where:
-- 0-20: Very difficult to maintain
-- 21-40: Difficult to maintain
-- 41-60: Moderately maintainable
-- 61-80: Highly maintainable 
-- 81-100: Extremely maintainable
+- 20-100: Good maintainability (indicates the code has good maintainability)
+- 10-19: Moderate maintainability (indicates the code could benefit from some improvement)
+- 0-9: Poor maintainability (indicates the code requires significant refactoring)
+
+This metric is aligned with Visual Studio's maintainability index ranges and helps identify areas that may need attention while avoiding overly harsh assessments.
 
 Output can be formatted as human-readable text or as a markdown table for better visualization.
 
@@ -93,11 +93,11 @@ Analysis includes:
 - Detailed metrics for each function and method
 
 The maintainability index is on a scale of 0-100, where:
-- 0-20: Very difficult to maintain
-- 21-40: Difficult to maintain
-- 41-60: Moderately maintainable
-- 61-80: Highly maintainable 
-- 81-100: Extremely maintainable
+- 20-100: Good maintainability (indicates the code has good maintainability)
+- 10-19: Moderate maintainability (indicates the code could benefit from some improvement)
+- 0-9: Poor maintainability (indicates the code requires significant refactoring)
+
+This metric is aligned with Visual Studio's maintainability index ranges and helps identify areas that may need attention while avoiding overly harsh assessments.
 
 Output can be formatted as human-readable text or as a markdown table for better visualization.`,
         inputSchema: convertSchema(TypescriptAnalyzeFileSchema),
@@ -119,6 +119,13 @@ Provides a comprehensive overview of:
 - Function-level analysis (optional)
 - Project-wide patterns and potential issues
 - Relative complexity between files
+
+The maintainability index is on a scale of 0-100, where:
+- 20-100: Good maintainability (indicates the code has good maintainability)
+- 10-19: Moderate maintainability (indicates the code could benefit from some improvement)
+- 0-9: Poor maintainability (indicates the code requires significant refactoring)
+
+This metric is aligned with Visual Studio's maintainability index ranges and helps identify areas that may need attention while avoiding overly harsh assessments.
 
 The analysis helps identify:
 - Complex files that may need refactoring

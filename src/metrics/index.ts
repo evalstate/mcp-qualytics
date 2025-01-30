@@ -32,10 +32,33 @@ class FileMetricsAnalyzer {
     try {
       const ast = this.parseTypeScript(code);
       const functions = functionAnalyzer.analyzeFunctions(ast);
-      const fileMetrics = this.calculateFileMetrics(ast, functions.length);
+      
+      // Get raw file-level metrics
+      const fileComplexity = cyclomaticComplexityCalculator.process(ast);
+      const fileHalstead = halsteadMetricsCalculator.process(ast);
+      const fileLOC = functionAnalyzer.countLogicalLines(ast);
+      
+      const maintainabilityIndex = calculateMaintainabilityIndex(
+        fileHalstead,
+        fileComplexity,
+        fileLOC
+      );
+
+      // Calculate average method complexity from individual functions
+      const averageComplexity = functions.length > 0
+        ? functions.reduce((sum, fn) => sum + fn.metrics.metrics.cyclomaticComplexity, 0) / functions.length
+        : 0;
 
       return {
-        fileMetrics,
+        fileMetrics: {
+          linesOfCode: fileLOC,
+          cyclomaticComplexity: fileComplexity,
+          maintainabilityIndex,
+          averageMethodComplexity: averageComplexity,
+          methodCount: functions.length,
+          classCount: this.countClasses(ast),
+          depthOfInheritance: this.calculateInheritanceDepth(ast),
+        },
         functions: functions.map(f => ({
           name: f.name,
           type: f.type,
@@ -54,45 +77,11 @@ class FileMetricsAnalyzer {
     return parse(code, DEFAULT_PARSE_OPTIONS);
   }
 
-  private calculateFileMetrics(ast: TSESTree.Node, methodCount: number): CodeMetrics {
-    const halsteadVolume = halsteadMetricsCalculator.process(ast);
-    const complexity = cyclomaticComplexityCalculator.process(ast);
-    const loc = this.countLogicalLinesOfCode(ast);
-    const maintainabilityIndex = calculateMaintainabilityIndex(
-      halsteadVolume,
-      complexity,
-      loc
-    );
-
-    const classCount = this.countClasses(ast);
-    const averageMethodComplexity = methodCount > 0 ? complexity / methodCount : 0;
-    const depthOfInheritance = this.calculateInheritanceDepth(ast);
-
-    return {
-      linesOfCode: loc,
-      cyclomaticComplexity: complexity,
-      maintainabilityIndex,
-      classCount,
-      methodCount,
-      averageMethodComplexity,
-      depthOfInheritance,
-    };
-  }
-
-  private countLogicalLinesOfCode(ast: TSESTree.Node): number {
-    let count = 0;
-    this.traverse(ast, node => {
-      if (this.isExecutableNode(node)) {
-        count++;
-      }
-    });
-    return count;
-  }
-
   private countClasses(ast: TSESTree.Node): number {
     let count = 0;
     this.traverse(ast, node => {
-      if (node.type === AST_NODE_TYPES.ClassDeclaration) {
+      if (node.type === AST_NODE_TYPES.ClassDeclaration || 
+          node.type === AST_NODE_TYPES.ClassExpression) {
         count++;
       }
     });
@@ -102,15 +91,54 @@ class FileMetricsAnalyzer {
   private calculateInheritanceDepth(ast: TSESTree.Node): number {
     const inheritanceMap = new Map<string, number>();
 
-    this.traverse(ast, node => {
+    const getClassIdentifier = (node: TSESTree.Node): string | undefined => {
       if (node.type === AST_NODE_TYPES.ClassDeclaration && node.id) {
-        let depth = 1;
-        if (node.superClass && node.superClass.type === AST_NODE_TYPES.Identifier) {
-          depth = (inheritanceMap.get(node.superClass.name) || 1) + 1;
+        return node.id.name;
+      } else if (node.type === AST_NODE_TYPES.ClassExpression && node.id) {
+        return node.id.name;
+      }
+      return undefined;
+    };
+
+    const getSuperclassIdentifier = (node: TSESTree.Node): string | undefined => {
+      if ((node.type === AST_NODE_TYPES.ClassDeclaration || 
+           node.type === AST_NODE_TYPES.ClassExpression) && 
+          node.superClass && 
+          node.superClass.type === AST_NODE_TYPES.Identifier) {
+        return node.superClass.name;
+      }
+      return undefined;
+    };
+
+    // First pass: collect all class names and their direct superclasses
+    const inheritanceEdges: [string, string][] = [];
+    this.traverse(ast, node => {
+      const className = getClassIdentifier(node);
+      const superClassName = getSuperclassIdentifier(node);
+      
+      if (className) {
+        inheritanceMap.set(className, 1); // Initialize all classes with depth 1
+        if (superClassName) {
+          inheritanceEdges.push([className, superClassName]);
         }
-        inheritanceMap.set(node.id.name, depth);
       }
     });
+
+    // Second pass: calculate inheritance depths
+    let changed: boolean;
+    do {
+      changed = false;
+      for (const [className, superClassName] of inheritanceEdges) {
+        const superClassDepth = inheritanceMap.get(superClassName) || 1;
+        const currentDepth = inheritanceMap.get(className) || 1;
+        const newDepth = superClassDepth + 1;
+        
+        if (newDepth > currentDepth) {
+          inheritanceMap.set(className, newDepth);
+          changed = true;
+        }
+      }
+    } while (changed);
 
     return inheritanceMap.size > 0 ? Math.max(...inheritanceMap.values()) : 0;
   }
@@ -131,30 +159,6 @@ class FileMetricsAnalyzer {
         }
       }
     }
-  }
-
-  private isExecutableNode(node: TSESTree.Node): boolean {
-    const executableTypes = new Set([
-      AST_NODE_TYPES.ExpressionStatement,
-      AST_NODE_TYPES.ReturnStatement,
-      AST_NODE_TYPES.ThrowStatement,
-      AST_NODE_TYPES.BreakStatement,
-      AST_NODE_TYPES.ContinueStatement,
-      AST_NODE_TYPES.DebuggerStatement,
-      AST_NODE_TYPES.DoWhileStatement,
-      AST_NODE_TYPES.ForStatement,
-      AST_NODE_TYPES.ForInStatement,
-      AST_NODE_TYPES.ForOfStatement,
-      AST_NODE_TYPES.IfStatement,
-      AST_NODE_TYPES.SwitchCase,
-      AST_NODE_TYPES.SwitchStatement,
-      AST_NODE_TYPES.TryStatement,
-      AST_NODE_TYPES.WhileStatement,
-      AST_NODE_TYPES.WithStatement,
-      AST_NODE_TYPES.VariableDeclaration,
-    ]);
-
-    return executableTypes.has(node.type);
   }
 
   private createEmptyAnalysis(): FileAnalysis {

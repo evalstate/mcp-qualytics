@@ -6,6 +6,54 @@
     "endLine": 7,
     "metrics": {
       "metrics": {
+        "linesOfCode": 1,
+        "cyclomaticComplexity": 1,
+        "maintainabilityIndex": 99.86549707602339,
+        "averageMethodComplexity": 1,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 0
+        },
+        "complexity": 1,
+        "loc": 1
+      }
+    }
+  },
+  {
+    "name": "getSpecies",
+    "type": "method",
+    "startLine": 9,
+    "endLine": 11,
+    "metrics": {
+      "metrics": {
+        "linesOfCode": 1,
+        "cyclomaticComplexity": 1,
+        "maintainabilityIndex": 99.86549707602339,
+        "averageMethodComplexity": 1,
+        "methodCount": 1,
+        "classCount": 0,
+        "depthOfInheritance": 0
+      },
+      "details": {
+        "halstead": {
+          "volume": 0
+        },
+        "complexity": 1,
+        "loc": 1
+      }
+    }
+  },
+  {
+    "name": "constructor",
+    "type": "method",
+    "startLine": 15,
+    "endLine": 17,
+    "metrics": {
+      "metrics": {
         "linesOfCode": 2,
         "cyclomaticComplexity": 1,
         "maintainabilityIndex": 93.29883957598182,
@@ -24,63 +72,15 @@
     }
   },
   {
-    "name": "getSpecies",
-    "type": "method",
-    "startLine": 9,
-    "endLine": 11,
-    "metrics": {
-      "metrics": {
-        "linesOfCode": 3,
-        "cyclomaticComplexity": 1,
-        "maintainabilityIndex": 89.45759118337814,
-        "averageMethodComplexity": 1,
-        "methodCount": 1,
-        "classCount": 0,
-        "depthOfInheritance": 0
-      },
-      "details": {
-        "halstead": {
-          "volume": 0
-        },
-        "complexity": 1,
-        "loc": 3
-      }
-    }
-  },
-  {
-    "name": "constructor",
-    "type": "method",
-    "startLine": 15,
-    "endLine": 17,
-    "metrics": {
-      "metrics": {
-        "linesOfCode": 3,
-        "cyclomaticComplexity": 1,
-        "maintainabilityIndex": 89.45759118337814,
-        "averageMethodComplexity": 1,
-        "methodCount": 1,
-        "classCount": 0,
-        "depthOfInheritance": 0
-      },
-      "details": {
-        "halstead": {
-          "volume": 0
-        },
-        "complexity": 1,
-        "loc": 3
-      }
-    }
-  },
-  {
     "name": "makeSound",
     "type": "method",
     "startLine": 19,
     "endLine": 21,
     "metrics": {
       "metrics": {
-        "linesOfCode": 3,
+        "linesOfCode": 2,
         "cyclomaticComplexity": 1,
-        "maintainabilityIndex": 83.84142359948639,
+        "maintainabilityIndex": 87.68267199209005,
         "averageMethodComplexity": 1,
         "methodCount": 1,
         "classCount": 0,
@@ -91,7 +91,7 @@
           "volume": 6.339850002884624
         },
         "complexity": 1,
-        "loc": 3
+        "loc": 2
       }
     }
   },
@@ -102,9 +102,9 @@
     "endLine": 25,
     "metrics": {
       "metrics": {
-        "linesOfCode": 3,
+        "linesOfCode": 1,
         "cyclomaticComplexity": 1,
-        "maintainabilityIndex": 89.45759118337814,
+        "maintainabilityIndex": 99.86549707602339,
         "averageMethodComplexity": 1,
         "methodCount": 1,
         "classCount": 0,
@@ -115,7 +115,7 @@
           "volume": 0
         },
         "complexity": 1,
-        "loc": 3
+        "loc": 1
       }
     }
   },
@@ -126,9 +126,9 @@
     "endLine": 33,
     "metrics": {
       "metrics": {
-        "linesOfCode": 3,
+        "linesOfCode": 2,
         "cyclomaticComplexity": 1,
-        "maintainabilityIndex": 89.45759118337814,
+        "maintainabilityIndex": 93.29883957598182,
         "averageMethodComplexity": 1,
         "methodCount": 1,
         "classCount": 0,
@@ -139,7 +139,7 @@
           "volume": 0
         },
         "complexity": 1,
-        "loc": 3
+        "loc": 2
       }
     }
   },
@@ -150,9 +150,9 @@
     "endLine": 37,
     "metrics": {
       "metrics": {
-        "linesOfCode": 3,
+        "linesOfCode": 2,
         "cyclomaticComplexity": 1,
-        "maintainabilityIndex": 83.84142359948639,
+        "maintainabilityIndex": 87.68267199209005,
         "averageMethodComplexity": 1,
         "methodCount": 1,
         "classCount": 0,
@@ -163,7 +163,7 @@
           "volume": 6.339850002884624
         },
         "complexity": 1,
-        "loc": 3
+        "loc": 2
       }
     }
   },
@@ -174,9 +174,9 @@
     "endLine": 41,
     "metrics": {
       "metrics": {
-        "linesOfCode": 3,
+        "linesOfCode": 1,
         "cyclomaticComplexity": 1,
-        "maintainabilityIndex": 89.45759118337814,
+        "maintainabilityIndex": 99.86549707602339,
         "averageMethodComplexity": 1,
         "methodCount": 1,
         "classCount": 0,
@@ -187,7 +187,7 @@
           "volume": 0
         },
         "complexity": 1,
-        "loc": 3
+        "loc": 1
       }
     }
   },
@@ -198,9 +198,9 @@
     "endLine": 47,
     "metrics": {
       "metrics": {
-        "linesOfCode": 4,
+        "linesOfCode": 3,
         "cyclomaticComplexity": 2,
-        "maintainabilityIndex": 78.57247557652539,
+        "maintainabilityIndex": 81.2978846839633,
         "averageMethodComplexity": 2,
         "methodCount": 1,
         "classCount": 0,
@@ -211,7 +211,7 @@
           "volume": 14
         },
         "complexity": 2,
-        "loc": 4
+        "loc": 3
       }
     }
   }

@@ -155,10 +155,10 @@ export class FunctionAnalyzer implements MetricsCalculator<TSESTree.Node> {
     }
   }
 
-  private isExecutableNode(node: TSESTree.Node): boolean {
-    // Executable statements
+  private isExecutableLine(node: TSESTree.Node): boolean {
+    // Executable statements and expressions
     const executableTypes = new Set([
-      // Standard executable statements
+      // Standard statements and expressions
       AST_NODE_TYPES.ExpressionStatement,
       AST_NODE_TYPES.ReturnStatement,
       AST_NODE_TYPES.ThrowStatement,
@@ -175,6 +175,15 @@ export class FunctionAnalyzer implements MetricsCalculator<TSESTree.Node> {
       AST_NODE_TYPES.TryStatement,
       AST_NODE_TYPES.WhileStatement,
       AST_NODE_TYPES.WithStatement,
+      AST_NODE_TYPES.CallExpression,
+      AST_NODE_TYPES.AssignmentExpression,
+      AST_NODE_TYPES.BinaryExpression,
+      AST_NODE_TYPES.LogicalExpression,
+      AST_NODE_TYPES.ConditionalExpression,
+      AST_NODE_TYPES.NewExpression,
+      AST_NODE_TYPES.YieldExpression,
+      AST_NODE_TYPES.AwaitExpression,
+      AST_NODE_TYPES.SpreadElement,
       
       // Declarations
       AST_NODE_TYPES.VariableDeclaration,
@@ -183,13 +192,14 @@ export class FunctionAnalyzer implements MetricsCalculator<TSESTree.Node> {
       AST_NODE_TYPES.TSInterfaceDeclaration,
       AST_NODE_TYPES.TSTypeAliasDeclaration,
       AST_NODE_TYPES.TSEnumDeclaration,
-      
-      // Imports/Exports
-      AST_NODE_TYPES.ImportDeclaration,
+      AST_NODE_TYPES.TSModuleDeclaration,
       AST_NODE_TYPES.ExportDefaultDeclaration,
       AST_NODE_TYPES.ExportNamedDeclaration,
+      AST_NODE_TYPES.ExportAllDeclaration,
+      AST_NODE_TYPES.ImportDeclaration,
       
-      // Class features
+      // Class and object members
+      AST_NODE_TYPES.MethodDefinition,
       AST_NODE_TYPES.PropertyDefinition,
       AST_NODE_TYPES.TSParameterProperty,
     ]);
@@ -201,86 +211,78 @@ export class FunctionAnalyzer implements MetricsCalculator<TSESTree.Node> {
     let loc = 0;
     const processedNodes = new Set<TSESTree.Node>();
 
-    const countBlockStatements = (blockNode: TSESTree.BlockStatement): number => {
-        let count = 0;
-        for (const statement of blockNode.body) {
-            if (this.isExecutableNode(statement)) {
-                count++;
-            }
-        }
-        return count;
-    };
-
     this.traverseAST(node, (n) => {
-        // Skip if we've already processed this node
-        if (processedNodes.has(n)) {
-            return;
-        }
+      // Skip if we've already processed this node
+      if (processedNodes.has(n)) {
+        return;
+      }
+      processedNodes.add(n);
 
-        // Mark as processed
-        processedNodes.add(n);
+      // Count this node if it's executable
+      if (this.isExecutableLine(n)) {
+        loc++;
 
-        // Handle different node types
+        // Additional lines for specific node types
         switch (n.type) {
-            case AST_NODE_TYPES.VariableDeclaration:
-                // Count the declaration itself
-                loc++;
-                break;
+          case AST_NODE_TYPES.VariableDeclaration:
+            // Count each declarator in a declaration
+            loc += (n as TSESTree.VariableDeclaration).declarations.length - 1;
+            break;
 
-            case AST_NODE_TYPES.MethodDefinition:
-                const methodNode = n as TSESTree.MethodDefinition;
-                // Count the method declaration
-                loc++;
-                
-                // For constructors, count parameter properties
-                if (methodNode.kind === 'constructor') {
-                    const params = (methodNode.value as TSESTree.FunctionExpression).params;
-                    const paramProps = params.filter(p => p.type === AST_NODE_TYPES.TSParameterProperty);
-                    loc += paramProps.length;
-                }
+          case AST_NODE_TYPES.MethodDefinition:
+            const methodNode = n as TSESTree.MethodDefinition;
+            // Count parameter properties in constructors
+            if (methodNode.kind === 'constructor') {
+              const params = (methodNode.value as TSESTree.FunctionExpression).params;
+              const paramProps = params.filter(p => p.type === AST_NODE_TYPES.TSParameterProperty);
+              loc += paramProps.length;
+            }
+            break;
 
-                // Count block statements if present
-                if (methodNode.value.body && methodNode.value.body.type === AST_NODE_TYPES.BlockStatement) {
-                    loc += countBlockStatements(methodNode.value.body);
-                }
-                break;
+          case AST_NODE_TYPES.ClassDeclaration:
+          case AST_NODE_TYPES.ClassExpression:
+            // Count each class member
+            const classNode = n as TSESTree.ClassDeclaration | TSESTree.ClassExpression;
+            loc += classNode.body.body.length;
+            break;
 
-            case AST_NODE_TYPES.FunctionDeclaration:
-            case AST_NODE_TYPES.FunctionExpression:
-                const funcNode = n as TSESTree.FunctionDeclaration | TSESTree.FunctionExpression;
-                // Count the function declaration
-                loc++;
-                
-                // Count block statements
-                if (funcNode.body.type === AST_NODE_TYPES.BlockStatement) {
-                    loc += countBlockStatements(funcNode.body);
-                }
-                break;
+          case AST_NODE_TYPES.ObjectExpression:
+            // Count each object property
+            const objNode = n as TSESTree.ObjectExpression;
+            loc += objNode.properties.length;
+            break;
 
-            case AST_NODE_TYPES.ArrowFunctionExpression:
-                const arrowNode = n as TSESTree.ArrowFunctionExpression;
-                // Count the arrow function itself
-                loc++;
-                
-                // For arrow functions with expression bodies, count the expression
-                if (arrowNode.body.type !== AST_NODE_TYPES.BlockStatement) {
-                    loc++;
-                } else {
-                    // Count block statements for block bodies
-                    loc += countBlockStatements(arrowNode.body);
-                }
-                break;
+          case AST_NODE_TYPES.ArrayExpression:
+            // Count array elements if they're on separate lines
+            const arrayNode = n as TSESTree.ArrayExpression;
+            if (arrayNode.elements.length > 0) {
+              const uniqueLines = new Set(
+                arrayNode.elements
+                  .filter(el => el?.loc)
+                  .map(el => el!.loc!.start.line)
+              );
+              loc += uniqueLines.size - 1; // -1 because we already counted the array declaration
+            }
+            break;
 
-            default:
-                // Handle other executable nodes
-                if (this.isExecutableNode(n)) {
-                    loc++;
-                }
-                break;
+          case AST_NODE_TYPES.ReturnStatement:
+            // Count complex return statements
+            const returnNode = n as TSESTree.ReturnStatement;
+            if (returnNode.argument?.type === AST_NODE_TYPES.ObjectExpression) {
+              const objNode = returnNode.argument as TSESTree.ObjectExpression;
+              loc += objNode.properties.length;
+            }
+            break;
         }
+      }
     });
 
     return loc;
+  }
+
+  // Public method for external use
+  countLogicalLines(node: TSESTree.Node): number {
+    return this.countLogicalLinesOfCode(node);
   }
 }
 
