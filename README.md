@@ -86,7 +86,7 @@ Analyze all TypeScript files in a directory:
 }
 ```
 
-Sample Output:
+### Sample Output
 
 | File | Scope | Name | Type | Lines | LOC | Complexity | Maintainability | Classes | Methods | Avg Complexity | Inheritance Depth |
 |------|--------|------|------|-------|-----|------------|----------------|----------|----------|----------------|------------------|
