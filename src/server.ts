@@ -164,16 +164,9 @@ Files are filtered based on:
   return server;
 }
 
-let shuttingDown = false;
 const cleanupHandlers = new Set<() => Promise<void>>();
 
 export async function startup() {
-  // Setup error handlers
-  process.on("uncaughtException", shutdown);
-  process.on("unhandledRejection", shutdown);
-  process.on("SIGINT", () => shutdown("SIGINT"));
-  process.on("SIGTERM", () => shutdown("SIGTERM"));
-  process.on("exit", () => shutdown("exit"));
 
   // Create and start server
   const transport = new StdioServerTransport();
@@ -187,25 +180,7 @@ export async function startup() {
   // Connect server
   try {
     await server.connect(transport);
-    console.error("Server started successfully");
   } catch (error) {
     console.error("Failed to start server:", error);
-    await shutdown("startup failed");
   }
-}
-
-export async function shutdown(reason = "unknown") {
-  if (shuttingDown) return;
-  shuttingDown = true;
-
-  console.error(`Shutting down (reason: ${reason})`);
-
-  try {
-    await Promise.all(Array.from(cleanupHandlers).map((h) => h()));
-  } catch (error) {
-    console.error("Error during shutdown:", error);
-    process.exit(1);
-  }
-
-  process.exit(0);
 }
