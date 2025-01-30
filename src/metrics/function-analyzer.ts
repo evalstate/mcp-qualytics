@@ -5,7 +5,7 @@ import { halsteadMetricsCalculator } from "./halstead.js";
 import { cyclomaticComplexityCalculator } from "./complexity.js";
 import { calculateMaintainabilityIndex } from "./maintainability.js";
 
-type FunctionType = 'function' | 'method' | 'arrow';
+type FunctionType = "function" | "method" | "arrow";
 
 interface FunctionAnalysis {
   name: string;
@@ -58,10 +58,10 @@ export class FunctionAnalyzer implements MetricsCalculator<TSESTree.Node> {
         const methodNode = node as TSESTree.MethodDefinition;
         processedNodes.add(methodNode);
         processedNodes.add(methodNode.value);
-        
+
         const analysis: FunctionAnalysis = {
           name: this.getFunctionName(methodNode),
-          type: 'method',
+          type: "method",
           startLine: methodNode.loc.start.line,
           endLine: methodNode.loc.end.line,
           metrics: this.calculate(methodNode.value),
@@ -88,19 +88,22 @@ export class FunctionAnalyzer implements MetricsCalculator<TSESTree.Node> {
     return functions.sort((a, b) => a.startLine - b.startLine);
   }
 
-  private traverseAST(node: TSESTree.Node, callback: (node: TSESTree.Node) => void): void {
+  private traverseAST(
+    node: TSESTree.Node,
+    callback: (node: TSESTree.Node) => void
+  ): void {
     callback(node);
 
     for (const key in node) {
       const child = (node as any)[key];
-      if (child && typeof child === 'object') {
+      if (child && typeof child === "object") {
         if (Array.isArray(child)) {
-          child.forEach(item => {
-            if (item && typeof item === 'object' && 'type' in item) {
+          child.forEach((item) => {
+            if (item && typeof item === "object" && "type" in item) {
               this.traverseAST(item as TSESTree.Node, callback);
             }
           });
-        } else if ('type' in child) {
+        } else if ("type" in child) {
           this.traverseAST(child as TSESTree.Node, callback);
         }
       }
@@ -110,34 +113,40 @@ export class FunctionAnalyzer implements MetricsCalculator<TSESTree.Node> {
   private getFunctionName(node: TSESTree.Node): string {
     switch (node.type) {
       case AST_NODE_TYPES.FunctionDeclaration:
-        return (node as TSESTree.FunctionDeclaration).id?.name || '<anonymous>';
-      
+        return (node as TSESTree.FunctionDeclaration).id?.name || "<anonymous>";
+
       case AST_NODE_TYPES.MethodDefinition:
         const methodNode = node as TSESTree.MethodDefinition;
-        return methodNode.key.type === AST_NODE_TYPES.Identifier 
-          ? methodNode.key.name 
-          : '<computed>';
-      
+        return methodNode.key.type === AST_NODE_TYPES.Identifier
+          ? methodNode.key.name
+          : "<computed>";
+
       case AST_NODE_TYPES.ArrowFunctionExpression:
       case AST_NODE_TYPES.FunctionExpression:
         // Check for variable declaration parent
-        if (node.parent?.type === AST_NODE_TYPES.VariableDeclarator && 
-            (node.parent as TSESTree.VariableDeclarator).id.type === AST_NODE_TYPES.Identifier) {
-          return ((node.parent as TSESTree.VariableDeclarator).id as TSESTree.Identifier).name;
+        if (
+          node.parent?.type === AST_NODE_TYPES.VariableDeclarator &&
+          (node.parent as TSESTree.VariableDeclarator).id.type ===
+            AST_NODE_TYPES.Identifier
+        ) {
+          return (
+            (node.parent as TSESTree.VariableDeclarator)
+              .id as TSESTree.Identifier
+          ).name;
         }
         // Check for method definition parent
         if (node.parent?.type === AST_NODE_TYPES.MethodDefinition) {
           const methodParent = node.parent as TSESTree.MethodDefinition;
           return methodParent.key.type === AST_NODE_TYPES.Identifier
             ? methodParent.key.name
-            : '<computed>';
+            : "<computed>";
         }
-        return node.type === AST_NODE_TYPES.ArrowFunctionExpression 
-          ? '<arrow>' 
-          : '<anonymous>';
-      
+        return node.type === AST_NODE_TYPES.ArrowFunctionExpression
+          ? "<arrow>"
+          : "<anonymous>";
+
       default:
-        return '<unknown>';
+        return "<unknown>";
     }
   }
 
@@ -145,13 +154,13 @@ export class FunctionAnalyzer implements MetricsCalculator<TSESTree.Node> {
     switch (node.type) {
       case AST_NODE_TYPES.FunctionDeclaration:
       case AST_NODE_TYPES.FunctionExpression:
-        return 'function';
+        return "function";
       case AST_NODE_TYPES.MethodDefinition:
-        return 'method';
+        return "method";
       case AST_NODE_TYPES.ArrowFunctionExpression:
-        return 'arrow';
+        return "arrow";
       default:
-        return 'function';
+        return "function";
     }
   }
 
@@ -185,7 +194,7 @@ export class FunctionAnalyzer implements MetricsCalculator<TSESTree.Node> {
       AST_NODE_TYPES.AwaitExpression,
       AST_NODE_TYPES.SpreadElement,
       AST_NODE_TYPES.ArrayExpression,
-      
+
       // Declarations
       AST_NODE_TYPES.VariableDeclaration,
       AST_NODE_TYPES.FunctionDeclaration,
@@ -198,7 +207,7 @@ export class FunctionAnalyzer implements MetricsCalculator<TSESTree.Node> {
       AST_NODE_TYPES.ExportNamedDeclaration,
       AST_NODE_TYPES.ExportAllDeclaration,
       AST_NODE_TYPES.ImportDeclaration,
-      
+
       // Class and object members
       AST_NODE_TYPES.MethodDefinition,
       AST_NODE_TYPES.PropertyDefinition,
@@ -222,24 +231,6 @@ export class FunctionAnalyzer implements MetricsCalculator<TSESTree.Node> {
       // Count this node if it's executable
       if (this.isExecutableLine(n)) {
         loc++;
-
-        // Special cases that need additional counting
-        switch (n.type) {
-          case AST_NODE_TYPES.VariableDeclaration:
-            // Count each declarator in a declaration
-            loc += (n as TSESTree.VariableDeclaration).declarations.length - 1;
-            break;
-
-          case AST_NODE_TYPES.MethodDefinition:
-            const methodNode = n as TSESTree.MethodDefinition;
-            // Count parameter properties in constructors
-            if (methodNode.kind === 'constructor') {
-              const params = (methodNode.value as TSESTree.FunctionExpression).params;
-              const paramProps = params.filter(p => p.type === AST_NODE_TYPES.TSParameterProperty);
-              loc += paramProps.length;
-            }
-            break;
-        }
       }
     });
 

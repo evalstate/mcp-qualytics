@@ -54,9 +54,9 @@
     "endLine": 22,
     "metrics": {
       "metrics": {
-        "linesOfCode": 14,
+        "linesOfCode": 15,
         "cyclomaticComplexity": 2,
-        "maintainabilityIndex": 60.530846407985266,
+        "maintainabilityIndex": 59.87722973074046,
         "averageMethodComplexity": 2,
         "methodCount": 1,
         "classCount": 0,
@@ -67,7 +67,7 @@
           "volume": 106.60593781761291
         },
         "complexity": 2,
-        "loc": 14
+        "loc": 15
       }
     }
   },
