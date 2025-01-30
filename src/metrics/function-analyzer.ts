@@ -39,7 +39,7 @@ export class FunctionAnalyzer implements MetricsCalculator<TSESTree.Node> {
       details: {
         halstead: { volume: halsteadVolume },
         complexity,
-        loc,
+        lloc: loc,
       },
     };
   }

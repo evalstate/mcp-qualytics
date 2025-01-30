@@ -46,100 +46,65 @@ export async function createServer() {
     const tools: Tool[] = [
       {
         name: ToolName.TYPESCRIPT_ANALYZE_TEXT,
-        description: `Performs a detailed code quality analysis of TypeScript code provided as text.
+        description: `Analyzes TypeScript code quality metrics from provided text.
 
-Analysis includes:
-- File-level metrics:
-  * Lines of Code (LOC): Count of logical code lines including:
-    - Declarations (variables, functions, classes, interfaces)
-    - Executable statements
-    - Import/export statements
-    - Parameter properties in constructors
-    (excluding comments, empty lines, and standalone braces)
-  * Cyclomatic complexity
-  * Maintainability index
-- Function-level analysis: complexity, maintainability per function
-- Class analysis: inheritance depth, method counts
-- Detailed metrics for each function and method
+Key metrics include:
+- Logical Lines of Code (LLOC): Counts executable code elements including:
+  * Statements (if, loops, return, etc.)
+  * Declarations (variables, functions, classes, etc.)
+  * Expressions (calls, assignments, etc.)
+  * TypeScript-specific elements (interfaces, type aliases, etc.)
+- Cyclomatic complexity
+- Maintainability index (0-100 scale)
+- Function-level metrics
+- Class metrics including inheritance depth
 
-The maintainability index is on a scale of 0-100, where:
-- 20-100: Good maintainability (indicates the code has good maintainability)
-- 10-19: Moderate maintainability (indicates the code could benefit from some improvement)
-- 0-9: Poor maintainability (indicates the code requires significant refactoring)
+Output formats: text (detailed) or markdown table (concise).
 
-This metric is aligned with Visual Studio's maintainability index ranges and helps identify areas that may need attention while avoiding overly harsh assessments.
-
-Output can be formatted as human-readable text or as a markdown table for better visualization.
-
-Can analyze both complete TypeScript files and individual functions/methods.`,
+Can analyze complete files or individual functions.`,
         inputSchema: convertSchema(TypescriptAnalyzeTextSchema),
       },
       {
         name: ToolName.TYPESCRIPT_ANALYZE_FILE,
-        description: `Performs a detailed code quality analysis of a single TypeScript file.
+        description: `Analyzes TypeScript code quality metrics for a single file.
 
-Analysis includes:
-- File-level metrics:
-  * Lines of Code (LOC): Count of logical code lines including:
-    - Declarations (variables, functions, classes, interfaces)
-    - Executable statements
-    - Import/export statements
-    - Parameter properties in constructors
-    (excluding comments, empty lines, and standalone braces)
-  * Cyclomatic complexity
-  * Maintainability index
-- Function-level analysis: complexity, maintainability per function
-- Class analysis: inheritance depth, method counts
-- Detailed metrics for each function and method
+Key metrics include:
+- Logical Lines of Code (LLOC): Counts executable code elements including:
+  * Statements (if, loops, return, etc.)
+  * Declarations (variables, functions, classes, etc.)
+  * Expressions (calls, assignments, etc.)
+  * TypeScript-specific elements (interfaces, type aliases, etc.)
+- Cyclomatic complexity 
+- Maintainability index (0-100 scale)
+- Function-level metrics
+- Class metrics including inheritance depth
 
-The maintainability index is on a scale of 0-100, where:
-- 20-100: Good maintainability (indicates the code has good maintainability)
-- 10-19: Moderate maintainability (indicates the code could benefit from some improvement)
-- 0-9: Poor maintainability (indicates the code requires significant refactoring)
-
-This metric is aligned with Visual Studio's maintainability index ranges and helps identify areas that may need attention while avoiding overly harsh assessments.
-
-Output can be formatted as human-readable text or as a markdown table for better visualization.`,
+Output formats: text (detailed) or markdown table (concise).`,
         inputSchema: convertSchema(TypescriptAnalyzeFileSchema),
       },
       {
         name: ToolName.TYPESCRIPT_ANALYZE_DIRECTORY,
-        description: `Recursively analyzes all TypeScript files in a directory to identify code quality patterns and potential issues.
+        description: `Recursively analyzes TypeScript files in a directory for code quality patterns.
 
-Provides a comprehensive overview of:
-- Code quality metrics for each file:
-  * Lines of Code (LOC): Count of logical code lines including:
-    - Declarations (variables, functions, classes, interfaces)
-    - Executable statements
-    - Import/export statements
-    - Parameter properties in constructors
-    (excluding comments, empty lines, and standalone braces)
-  * Cyclomatic complexity
-  * Maintainability index
-- Function-level analysis (optional)
-- Project-wide patterns and potential issues
-- Relative complexity between files
+Per-file metrics:
+- Logical Lines of Code (LLOC): Counts executable code elements including:
+  * Statements (if, loops, return, etc.)
+  * Declarations (variables, functions, classes, etc.)
+  * Expressions (calls, assignments, etc.)
+  * TypeScript-specific elements (interfaces, type aliases, etc.)
+- Cyclomatic complexity
+- Maintainability index (0-100 scale)
+- Optional function-level analysis
+- Class metrics
 
-The maintainability index is on a scale of 0-100, where:
-- 20-100: Good maintainability (indicates the code has good maintainability)
-- 10-19: Moderate maintainability (indicates the code could benefit from some improvement)
-- 0-9: Poor maintainability (indicates the code requires significant refactoring)
+Results help identify:
+- Complex code needing refactoring
+- Maintainability issues
+- Deep inheritance chains
 
-This metric is aligned with Visual Studio's maintainability index ranges and helps identify areas that may need attention while avoiding overly harsh assessments.
+Output as markdown tables with file summaries and optional function details.
 
-The analysis helps identify:
-- Complex files that may need refactoring
-- Inconsistent code patterns
-- Files with maintainability issues
-- Deep inheritance hierarchies
-
-Results are presented in a markdown table format for easy comparison between files and functions.
-Use include_functions=false for a higher-level overview of just file metrics.
-
-Files are filtered based on:
-- .gitignore patterns if present
-- Default ignored patterns (node_modules, .*, dist, build, out)
-- Additional ignore patterns if specified`,
+Respects .gitignore and common ignore patterns.`,
         inputSchema: convertSchema(TypescriptAnalyzeDirectorySchema),
       },
     ];
@@ -167,7 +132,6 @@ Files are filtered based on:
 const cleanupHandlers = new Set<() => Promise<void>>();
 
 export async function startup() {
-
   // Create and start server
   const transport = new StdioServerTransport();
   const server = await createServer();

@@ -1,5 +1,5 @@
 export interface CodeMetrics {
-  linesOfCode: number;
+  linesOfCode: number;  // Note: Property name kept for backward compatibility, but represents LLOC
   cyclomaticComplexity: number;
   maintainabilityIndex: number;
   depthOfInheritance: number;
@@ -30,7 +30,7 @@ export interface MetricsResult {
   details?: {
     halstead?: HalsteadMetrics;
     complexity?: number;
-    loc?: number;
+    lloc?: number;  // Updated to LLOC for consistency in details
   };
 }
 

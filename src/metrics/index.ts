@@ -36,12 +36,12 @@ class FileMetricsAnalyzer {
       // Get raw file-level metrics
       const fileComplexity = cyclomaticComplexityCalculator.process(ast);
       const fileHalstead = halsteadMetricsCalculator.process(ast);
-      const fileLOC = functionAnalyzer.countLogicalLines(ast);
+      const fileLLOC = functionAnalyzer.countLogicalLines(ast);
       
       const maintainabilityIndex = calculateMaintainabilityIndex(
         fileHalstead,
         fileComplexity,
-        fileLOC
+        fileLLOC
       );
 
       // Calculate average method complexity from individual functions
@@ -51,7 +51,7 @@ class FileMetricsAnalyzer {
 
       return {
         fileMetrics: {
-          linesOfCode: fileLOC,
+          linesOfCode: fileLLOC,
           cyclomaticComplexity: fileComplexity,
           maintainabilityIndex,
           averageMethodComplexity: averageComplexity,

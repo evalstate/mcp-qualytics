@@ -19,7 +19,7 @@
           "volume": 0
         },
         "complexity": 1,
-        "loc": 1
+        "lloc": 1
       }
     }
   },
@@ -43,7 +43,7 @@
           "volume": 6.339850002884624
         },
         "complexity": 1,
-        "loc": 2
+        "lloc": 2
       }
     }
   },
@@ -67,7 +67,7 @@
           "volume": 114.71363126237385
         },
         "complexity": 4,
-        "loc": 18
+        "lloc": 18
       }
     }
   },
@@ -91,7 +91,7 @@
           "volume": 18.575424759098897
         },
         "complexity": 1,
-        "loc": 5
+        "lloc": 5
       }
     }
   },
@@ -115,7 +115,7 @@
           "volume": 7.92481250360578
         },
         "complexity": 1,
-        "loc": 2
+        "lloc": 2
       }
     }
   }

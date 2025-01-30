@@ -19,7 +19,7 @@
           "volume": 0
         },
         "complexity": 1,
-        "loc": 1
+        "lloc": 1
       }
     }
   },
@@ -43,7 +43,7 @@
           "volume": 0
         },
         "complexity": 1,
-        "loc": 1
+        "lloc": 1
       }
     }
   },
@@ -67,7 +67,7 @@
           "volume": 0
         },
         "complexity": 1,
-        "loc": 2
+        "lloc": 2
       }
     }
   },
@@ -91,7 +91,7 @@
           "volume": 6.339850002884624
         },
         "complexity": 1,
-        "loc": 2
+        "lloc": 2
       }
     }
   },
@@ -115,7 +115,7 @@
           "volume": 0
         },
         "complexity": 1,
-        "loc": 1
+        "lloc": 1
       }
     }
   },
@@ -139,7 +139,7 @@
           "volume": 0
         },
         "complexity": 1,
-        "loc": 2
+        "lloc": 2
       }
     }
   },
@@ -163,7 +163,7 @@
           "volume": 6.339850002884624
         },
         "complexity": 1,
-        "loc": 2
+        "lloc": 2
       }
     }
   },
@@ -187,7 +187,7 @@
           "volume": 0
         },
         "complexity": 1,
-        "loc": 1
+        "lloc": 1
       }
     }
   },
@@ -211,7 +211,7 @@
           "volume": 14
         },
         "complexity": 2,
-        "loc": 3
+        "lloc": 3
       }
     }
   }
