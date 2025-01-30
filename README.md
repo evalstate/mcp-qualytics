@@ -1,11 +1,42 @@
 # MCP Qualytics
 
-A Code Metric Analysis MCP Server that provides advanced code quality metrics for TypeScript code.
+Code Metric Analysis MCP Server that provides advanced code quality metrics for TypeScript code.
 
 ## Installation
 
-```bash
-npm install -g @llmindset/mcp-qualytics
+Requires NodeJS >18.0 [NodeJS](https://nodejs.org/en/download) to be installed.
+
+### Goose
+
+Use Goose Configure to add a Command Line extension with the command `npx -y @llmindset/mcp-qualytics" or update your config.yaml:
+
+```yaml
+extensions:
+  developer:
+    enabled: true
+    name: developer
+    type: builtin
+  mcp-qualytics:
+    args:
+    - -y
+    - '@llmindset/mcp-qualytics'
+    cmd: npx
+    enabled: true
+    envs: {}
+    name: mcp-qualytics
+    type: stdio
+```
+
+### Claude Desktop
+
+Add the following to the mcpServers section of your `claude_desktop_config.json` file:
+
+```json
+
+    "mcp-qualytics": {
+      "command": "npx",
+      "args": ["-y", "mcp-qualytics"]
+    }
 ```
 
 ## Usage
@@ -58,7 +89,7 @@ Analyze all TypeScript files in a directory:
 ## Metrics
 
 The analysis includes:
-- Lines of Code (LOC)
+- Logical Lines of Code (LLOC)
 - Cyclomatic Complexity
 - Maintainability Index (0-100)
 - Class Count
@@ -71,6 +102,10 @@ The analysis includes:
 All tools support two output formats:
 - `text`: Detailed human-readable output
 - `table`: Markdown table format for easy visualization
+
+## Notes
+
+- The LLOC function has been updated from the original to count more TypeScript specific features.
 
 ## License
 
